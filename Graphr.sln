@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Graphr.Neo4j", "Graphr.Neo4j\Graphr.Neo4j.csproj", "{8D48319A-7082-48D5-A2F1-FA26E3DEEC01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Graphr.Neo4j.Tests", "Graphr.Neo4j.Tests\Graphr.Neo4j.Tests.csproj", "{ABBCDE6F-0C31-4BA1-A945-15C222F5A45C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8D48319A-7082-48D5-A2F1-FA26E3DEEC01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D48319A-7082-48D5-A2F1-FA26E3DEEC01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D48319A-7082-48D5-A2F1-FA26E3DEEC01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D48319A-7082-48D5-A2F1-FA26E3DEEC01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABBCDE6F-0C31-4BA1-A945-15C222F5A45C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABBCDE6F-0C31-4BA1-A945-15C222F5A45C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABBCDE6F-0C31-4BA1-A945-15C222F5A45C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABBCDE6F-0C31-4BA1-A945-15C222F5A45C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
