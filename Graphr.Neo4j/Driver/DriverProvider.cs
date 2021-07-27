@@ -13,28 +13,10 @@ namespace Graphr.Neo4j.Driver
 
         ~DriverProvider() => Dispose(false);
 
-        public DriverProvider(IOptions<NeoDriverConfigurationSettings> options, Neo4jLogger neoLogger = null)
-        {
-            if (options?.Value == null) throw new ArgumentNullException(nameof(options));
-            if (options.Value.Password == null) throw new ArgumentNullException(nameof(options));
-            if (options.Value.Username == null) throw new ArgumentNullException(nameof(options));
-            if (options.Value.Url == null) throw new ArgumentNullException(nameof(options));
-            
-            var settings = options.Value;
-            
-            Driver = GraphDatabase.Driver(
-                settings.Url, 
-                AuthTokens.Basic(settings.Username, settings.Password),
-                builder =>
-                {
-                    if (neoLogger != null)
-                        builder.WithLogger(neoLogger);
-                });
-        }
-
         public DriverProvider(NeoDriverConfigurationSettings settings, Neo4jLogger neoLogger = null)
         {
-            if (settings == null) throw new ArgumentNullException(nameof(settings));
+            if (settings?.Url == null || settings.Username == null || settings.Password == null) 
+                throw new ArgumentNullException(nameof(settings));
             
             Driver = GraphDatabase.Driver(
                 settings.Url, 

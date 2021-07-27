@@ -13,9 +13,11 @@ namespace Graphr.Neo4j.DependencyInjection
     {
         public static IServiceCollection AddNeoGraphr(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<NeoDriverConfigurationSettings>(configuration.GetSection(nameof(NeoDriverConfigurationSettings)));
-
+            var neoDriverConfigurationSettings = new NeoDriverConfigurationSettings();
+            configuration.Bind(nameof(NeoDriverConfigurationSettings), neoDriverConfigurationSettings);
+            
             services
+                .AddSingleton(neoDriverConfigurationSettings)
                 .AddSingleton<INeoLogger, NeoLogger>()
                 .AddSingleton<IDriverProvider, DriverProvider>()
                 .AddTransient<IQueryExecutor, QueryExecutor>()
