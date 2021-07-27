@@ -1,6 +1,7 @@
 using System;
 using Graphr.Neo4j.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Neo4jLogger = Neo4j.Driver.ILogger;
 
 
@@ -11,6 +12,15 @@ namespace Graphr.Neo4j.Logging
         private readonly ILogger<NeoLogger> _logger;
         private readonly bool _isDebugEnabled;
         private readonly bool _isTraceEnabled;
+        
+        public NeoLogger(ILogger<NeoLogger> logger, IOptions<NeoDriverConfigurationSettings> options = null)
+        {
+            var settings = options?.Value;
+            
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _isDebugEnabled = settings?.IsDebugLoggingEnabled ?? false;
+            _isTraceEnabled = settings?.IsTraceLoggingEnabled ?? false;
+        }
 
         public NeoLogger(ILogger<NeoLogger> logger, NeoDriverConfigurationSettings settings = null)
         {
