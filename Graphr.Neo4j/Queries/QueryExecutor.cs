@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Graphr.Neo4j.Driver;
 using Neo4j.Driver;
 
 namespace Graphr.Neo4j.Queries
@@ -9,9 +10,9 @@ namespace Graphr.Neo4j.Queries
     {
         private readonly IDriver _driver;
 
-        public QueryExecutor(IDriver driver)
+        public QueryExecutor(IDriverProvider driverProvider)
         {
-            _driver = driver;
+            _driver = driverProvider.Driver;
         }
 
         private async Task<List<IRecord>> ReadAsync(Func<IAsyncTransaction, Task<IResultCursor>> runAsyncCommand)
