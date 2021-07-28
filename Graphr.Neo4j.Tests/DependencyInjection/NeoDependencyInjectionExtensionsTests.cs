@@ -19,14 +19,10 @@ namespace Graphr.Tests.DependencyInjection
         {
             // Arrange
              var serviceCollection = new ServiceCollection();
-            var configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.integrationtests.json", false)
-                .Build();
+            var configuration = new ConfigurationBuilder().Build();
 
             // Act
-            serviceCollection
-                .AddLogging()
-                .AddNeoGraphr(configuration);
+            serviceCollection.AddNeoGraphr(configuration);
 
             // Assert;
             Assert.Single(serviceCollection.Where(x => x.Lifetime == ServiceLifetime.Singleton && x.ServiceType == typeof(NeoDriverConfigurationSettings)));
@@ -53,7 +49,6 @@ namespace Graphr.Tests.DependencyInjection
                 .AddNeoGraphr(configuration);
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
-            var registeredSettings = serviceProvider.GetRequiredService<NeoDriverConfigurationSettings>();
 
             // Assert
             serviceProvider.GetRequiredService<NeoDriverConfigurationSettings>();
