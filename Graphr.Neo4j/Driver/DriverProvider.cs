@@ -1,6 +1,5 @@
 using System;
 using Graphr.Neo4j.Configuration;
-using Microsoft.Extensions.Options;
 using Neo4j.Driver;
 using Neo4jLogger = Neo4j.Driver.ILogger;
 
