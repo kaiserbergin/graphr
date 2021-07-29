@@ -144,7 +144,6 @@ namespace Graphr.Tests.Graphr
         public async void ReadAsAsync_CircularReferences_ReturnsRepeatedNodesWithoutInfiniteRelationshipLoops()
         {
             // Arrange
-            const int expectedMovieCount = 13;
             var query = new Query(_actorToMovieToReviewerToFollowerQuery);
 
             // Act
