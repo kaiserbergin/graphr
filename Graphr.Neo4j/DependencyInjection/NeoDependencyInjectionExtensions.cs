@@ -2,7 +2,7 @@
 using Graphr.Neo4j.Driver;
 using Graphr.Neo4j.Graphr;
 using Graphr.Neo4j.Logging;
-using Graphr.Neo4j.Queries;
+using Graphr.Neo4j.QueryExecution;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using INeoLogger = Neo4j.Driver.ILogger;

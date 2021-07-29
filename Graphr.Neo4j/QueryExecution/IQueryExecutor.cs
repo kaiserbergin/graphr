@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Neo4j.Driver;
 
-namespace Graphr.Neo4j.Queries
+namespace Graphr.Neo4j.QueryExecution
 {
     public interface IQueryExecutor
     {

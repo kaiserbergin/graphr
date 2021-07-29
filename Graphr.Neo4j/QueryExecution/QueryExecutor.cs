@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Graphr.Neo4j.Driver;
 using Neo4j.Driver;
 
-namespace Graphr.Neo4j.Queries
+namespace Graphr.Neo4j.QueryExecution
 {
     public class QueryExecutor : IQueryExecutor
     {
@@ -18,7 +18,7 @@ namespace Graphr.Neo4j.Queries
         private async Task<List<IRecord>> ReadAsync(Func<IAsyncTransaction, Task<IResultCursor>> runAsyncCommand)
         {
             var records = new List<IRecord>();
-            using var session = _driver.AsyncSession();
+            await using var session = _driver.AsyncSession();
             
             try
             {

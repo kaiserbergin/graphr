@@ -4,7 +4,7 @@ using Graphr.Neo4j.Configuration;
 using Graphr.Neo4j.DependencyInjection;
 using Graphr.Neo4j.Driver;
 using Graphr.Neo4j.Graphr;
-using Graphr.Neo4j.Queries;
+using Graphr.Neo4j.QueryExecution;
 using Graphr.Tests.Fixtures;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

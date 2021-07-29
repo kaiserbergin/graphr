@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Graphr.Neo4j.Attributes;
-using Graphr.Neo4j.Queries;
+using Graphr.Neo4j.QueryExecution;
 using Neo4j.Driver;
 
 namespace Graphr.Neo4j.Graphr

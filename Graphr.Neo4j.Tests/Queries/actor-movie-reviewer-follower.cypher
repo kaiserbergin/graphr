@@ -1,0 +1,5 @@
+MATCH (a:Person {name:'Tom Hanks'})
+OPTIONAL MATCH (a)-[r:ACTED_IN]->(m:Movie)
+OPTIONAL MATCH (m)<-[v:REVIEWED]-(rv:Person)
+OPTIONAL MATCH (rv)<-[f:FOLLOWS]-(fl:Person)
+RETURN a, collect(r), collect(m), collect(v), collect(rv), collect(f), collect(fl)
