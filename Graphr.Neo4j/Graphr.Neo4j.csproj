@@ -2,6 +2,17 @@
 
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
+        <PackageId>Graphr.Neo4j</PackageId>
+        <Authors>kaiserbergin</Authors>
+        <Company>N/A</Company>
+        <Product>Graphr for Neo4j</Product>
+        <Description>Abstracts query execution and result mapping.</Description>
+        <PackageProjectUrl>https://github.com/kaiserbergin/graphr/tree/main/Graphr.Neo4j</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/kaiserbergin/graphr</RepositoryUrl>
+        <RepositoryType>github</RepositoryType>
+        <Version>0.0.1</Version>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
