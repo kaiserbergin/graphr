@@ -38,8 +38,8 @@ namespace Graphr.Tests.DependencyInjection
             Assert.Single(serviceCollection.Where(x => x.Lifetime == ServiceLifetime.Singleton && x.ServiceType == typeof(NeoDriverConfigurationSettings)));
             Assert.Single(serviceCollection.Where(x => x.Lifetime == ServiceLifetime.Singleton && x.ServiceType == typeof(INeoLogger)));
             Assert.Single(serviceCollection.Where(x => x.Lifetime == ServiceLifetime.Singleton && x.ServiceType == typeof(IDriverProvider)));
-            Assert.Single(serviceCollection.Where(x => x.Lifetime == ServiceLifetime.Transient && x.ServiceType == typeof(IQueryExecutor)));
-            Assert.Single(serviceCollection.Where(x => x.Lifetime == ServiceLifetime.Transient && x.ServiceType == typeof(INeoGraphr)));
+            Assert.Single(serviceCollection.Where(x => x.Lifetime == ServiceLifetime.Scoped && x.ServiceType == typeof(IQueryExecutor)));
+            Assert.Single(serviceCollection.Where(x => x.Lifetime == ServiceLifetime.Scoped && x.ServiceType == typeof(INeoGraphr)));
         }
 
         [Fact]

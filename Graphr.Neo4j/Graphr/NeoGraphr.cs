@@ -12,8 +12,6 @@ namespace Graphr.Neo4j.Graphr
     public class NeoGraphr : INeoGraphr
     {
         private readonly IQueryExecutor _queryExecutor;
-        private Dictionary<long, INode> _nodesById = new Dictionary<long, INode>();
-        private ILookup<string, IRelationship> _relationshipLookup;
 
         public NeoGraphr(IQueryExecutor queryExecutor)
         {
@@ -56,10 +54,10 @@ namespace Graphr.Neo4j.Graphr
 
             foreach (var record in records)
             {
-                AssignNeoLookups(record);
+                var neoLookups = new NeoLookups(record);
                 var rootNode = GetRootNode(record, targetType);
 
-                var translatedNode = TranslateNode(rootNode, targetType, new HashSet<long>());
+                var translatedNode = TranslateNode(rootNode, targetType, new HashSet<long>(), neoLookups);
 
                 result.Add(translatedNode);
             }
@@ -68,65 +66,6 @@ namespace Graphr.Neo4j.Graphr
         }
 
         #region Translation Initilization
-
-        private void AssignNeoLookups(IRecord record)
-        {
-            AssignNodes(record);
-            AssignRelationships(record);
-        }
-
-        private void AssignNodes(IRecord record)
-        {
-            foreach (var (_, recordValue) in record.Values)
-            {
-                if (recordValue is INode node)
-                {
-                    _nodesById.TryAdd(node.Id, node);
-                }
-                else if (recordValue is List<object> objectList && objectList.FirstOrDefault() != null &&
-                         objectList.FirstOrDefault() is INode)
-                {
-                    foreach (var obj in objectList)
-                    {
-                        var nodeFromObj = obj as INode;
-                        if (nodeFromObj?.Id != null)
-                            _nodesById.TryAdd(nodeFromObj.Id, nodeFromObj);
-                    }
-                }
-            }
-        }
-
-        private void AssignRelationships(IRecord record)
-        {
-            var distinctRelationships = GetDistinctRelationships(record);
-
-            _relationshipLookup = distinctRelationships.ToLookup(rel => rel.Type, rel => rel);
-        }
-
-        private List<IRelationship> GetDistinctRelationships(IRecord record)
-        {
-            var relationships = new Dictionary<long, IRelationship>();
-
-            foreach (var (_, recordValue) in record.Values)
-            {
-                if (recordValue is IRelationship relationship)
-                {
-                    relationships.TryAdd(relationship.Id, relationship);
-                }
-                else if (recordValue is List<object> objectList && objectList.FirstOrDefault() != null &&
-                         objectList.FirstOrDefault() is IRelationship)
-                {
-                    foreach (var obj in objectList)
-                    {
-                        var relationshipFromObj = obj as IRelationship;
-                        if (relationshipFromObj?.Id != null)
-                            relationships.TryAdd(relationshipFromObj.Id, relationshipFromObj);
-                    }
-                }
-            }
-
-            return relationships.Values.ToList();
-        }
 
         private INode GetRootNode(IRecord record, Type targetType)
         {
@@ -169,7 +108,7 @@ namespace Graphr.Neo4j.Graphr
 
         #region Node translation
 
-        private object TranslateNode(INode neoNode, Type targetType, HashSet<long> traversedIds)
+        private object TranslateNode(INode neoNode, Type targetType, HashSet<long> traversedIds, NeoLookups neoLookups)
         {
             if (targetType.GetConstructor(Type.EmptyTypes) == null)
                 throw new Exception($"You need a paramless ctor bro. Class: {targetType.Name}");
@@ -216,13 +155,13 @@ namespace Graphr.Neo4j.Graphr
                     if (typeof(string) != relationshipTargetType && typeof(IEnumerable).IsAssignableFrom(relationshipTargetType))
                     {
                         var targetNodeType = relationshipTargetType.GetGenericArguments()[0];
-                        var targetNodes = TranslateRelatedNodes(neoNode, neoRelationshipAttribute, targetNodeType, traversedIds);
+                        var targetNodes = TranslateRelatedNodes(neoNode, neoRelationshipAttribute, targetNodeType, traversedIds, neoLookups);
 
                         propertyInfo.SetValue(target, targetNodes);
                     }
                     else
                     {
-                        var targetNode = TranslateRelatedNode(neoNode, neoRelationshipAttribute, relationshipTargetType, traversedIds);
+                        var targetNode = TranslateRelatedNode(neoNode, neoRelationshipAttribute, relationshipTargetType, traversedIds, neoLookups);
 
                         propertyInfo.SetValue(target, targetNode);
                     }
@@ -236,20 +175,21 @@ namespace Graphr.Neo4j.Graphr
             INode sourceNode,
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type targetNodeType,
-            HashSet<long> traversedIds)
+            HashSet<long> traversedIds,
+            NeoLookups neoLookups)
         {
             var targetTypeLabels = GetTargetTypeLabels(targetNodeType);
 
             var genericListType = typeof(List<>).MakeGenericType(targetNodeType);
             var targetNodes = (IList) Activator.CreateInstance(genericListType);
 
-            var relationshipsOfTargetType = _relationshipLookup[neoRelationshipAttribute.Type];
+            var relationshipsOfTargetType = neoLookups.RelationshipLookup[neoRelationshipAttribute.Type];
 
             foreach (var relationship in relationshipsOfTargetType)
             {
-                if (IsTranslatableRelationship(sourceNode, neoRelationshipAttribute, relationship, targetTypeLabels, out var targetNode))
+                if (IsTranslatableRelationship(sourceNode, neoRelationshipAttribute, relationship, targetTypeLabels, neoLookups, out var targetNode))
                 {
-                    var translatedNode = TranslateNode(targetNode, targetNodeType, traversedIds);
+                    var translatedNode = TranslateNode(targetNode, targetNodeType, traversedIds, neoLookups);
                     targetNodes!.Add(translatedNode);
                 }
             }
@@ -269,6 +209,7 @@ namespace Graphr.Neo4j.Graphr
             NeoRelationshipAttribute neoRelationshipAttribute,
             IRelationship relationship,
             HashSet<string> targetTypeLabels,
+            NeoLookups neoLookups,
             out INode targetNode)
         {
             targetNode = null;
@@ -282,7 +223,7 @@ namespace Graphr.Neo4j.Graphr
 
             if (sourceNode.Id == relationshipSourceId)
             {
-                if (_nodesById.TryGetValue(relationshipTargetId, out var candidateTargetNode))
+                if (neoLookups.NodesById.TryGetValue(relationshipTargetId, out var candidateTargetNode))
                 {
                     foreach (var label in candidateTargetNode.Labels)
                     {
@@ -302,16 +243,17 @@ namespace Graphr.Neo4j.Graphr
             INode sourceNode,
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type targetNodeType,
-            HashSet<long> traversedIds)
+            HashSet<long> traversedIds,
+            NeoLookups neoLookups)
         {
             var targetTypeLabels = GetTargetTypeLabels(targetNodeType);
             INode nodeToTranslate = null;
 
-            var relationshipsOfTargetType = _relationshipLookup[neoRelationshipAttribute.Type];
+            var relationshipsOfTargetType = neoLookups.RelationshipLookup[neoRelationshipAttribute.Type];
 
             foreach (var relationship in relationshipsOfTargetType)
             {
-                if (IsTranslatableRelationship(sourceNode, neoRelationshipAttribute, relationship, targetTypeLabels, out var targetNode))
+                if (IsTranslatableRelationship(sourceNode, neoRelationshipAttribute, relationship, targetTypeLabels, neoLookups, out var targetNode))
                 {
                     if (nodeToTranslate != null)
                         throw new Exception("You have multiple relationship matches for a 1 to 1 mapping.");
@@ -320,7 +262,7 @@ namespace Graphr.Neo4j.Graphr
                 }
             }
 
-            return TranslateNode(nodeToTranslate, targetNodeType, traversedIds);
+            return TranslateNode(nodeToTranslate, targetNodeType, traversedIds, neoLookups);
         }
 
         #endregion

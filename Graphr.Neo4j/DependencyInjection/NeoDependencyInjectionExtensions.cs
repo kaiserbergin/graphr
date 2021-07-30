@@ -20,8 +20,8 @@ namespace Graphr.Neo4j.DependencyInjection
                 .AddSingleton(neoDriverConfigurationSettings)
                 .AddSingleton<INeoLogger, NeoLogger>()
                 .AddSingleton<IDriverProvider, DriverProvider>()
-                .AddTransient<IQueryExecutor, QueryExecutor>()
-                .AddTransient<INeoGraphr, NeoGraphr>();
+                .AddScoped<IQueryExecutor, QueryExecutor>()
+                .AddScoped<INeoGraphr, NeoGraphr>();
 
             return services;
         }
