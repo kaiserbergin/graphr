@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Graphr.Neo4j.Graphr;
-using Graphr.Neo4j.QueryExecution;
 using Graphr.Tests.Fixtures;
 using Graphr.Tests.Graphr.Models;
 using Microsoft.Extensions.DependencyInjection;
