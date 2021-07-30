@@ -1,6 +1,6 @@
 ﻿using Graphr.Neo4j.Attributes;
 
-namespace TrialsOfNeo
+namespace Graphr.Tests.Graphr.Models
 {
     [NeoNode("Movie")]
     public class Movie

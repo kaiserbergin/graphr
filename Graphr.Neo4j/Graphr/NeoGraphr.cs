@@ -46,6 +46,46 @@ namespace Graphr.Neo4j.Graphr
             return Translate<T>(records);
         }
 
+        public async Task<List<T>> WriteAsAsync<T>(string query) where T : class, new()
+        {
+            var records = await _queryExecutor.WriteAsync(query);
+
+            return Translate<T>(records);
+        }
+
+        public async Task<List<T>> WriteAsAsync<T>(string query, object parameters) where T : class, new()
+        {
+            var records = await _queryExecutor.WriteAsync(query, parameters);
+
+            return Translate<T>(records);
+        }
+
+        public async Task<List<T>> WriteAsAsync<T>(string query, IDictionary<string, object> parameters) where T : class, new()
+        {
+            var records = await _queryExecutor.WriteAsync(query, parameters);
+
+            return Translate<T>(records);
+        }
+
+        public async Task<List<T>> WriteAsAsync<T>(Query query) where T : class, new()
+        {
+            var records = await _queryExecutor.WriteAsync(query);
+
+            return Translate<T>(records);
+        }
+
+        public async Task WriteAsync(string query) =>
+            await _queryExecutor.WriteAsync(query);
+
+        public async Task WriteAsync(string query, object parameters) =>
+            await _queryExecutor.WriteAsync(query, parameters);
+
+        public async Task WriteAsync(string query, Dictionary<string, object> parameters) =>
+            await _queryExecutor.WriteAsync(query, parameters);
+
+        public async Task WriteAsync(Query query) =>
+            await _queryExecutor.WriteAsync(query);
+
         public List<T> Translate<T>(List<IRecord> records) where T : class, new()
         {
             var result = new List<object>();

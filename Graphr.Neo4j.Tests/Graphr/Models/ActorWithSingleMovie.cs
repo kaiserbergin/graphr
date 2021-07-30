@@ -1,5 +1,4 @@
 ﻿using Graphr.Neo4j.Attributes;
-using TrialsOfNeo;
 
 namespace Graphr.Tests.Graphr.Models
 {

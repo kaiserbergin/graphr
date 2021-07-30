@@ -40,6 +40,31 @@ namespace Graphr.Neo4j.QueryExecution
             return records;
         }
 
+        private async Task<List<IRecord>> WriteAsync(Func<IAsyncTransaction, Task<IResultCursor>> runAsyncCommand)
+        {
+            var records = new List<IRecord>();
+            await using var session = _driver.AsyncSession();
+            
+            try
+            {
+                await session.WriteTransactionAsync(async tx =>
+                {
+                    var reader = await runAsyncCommand(tx);
+
+                    while (await reader.FetchAsync())
+                    {
+                        records.Add(reader.Current);
+                    }
+                });
+            }
+            finally
+            {
+                await session.CloseAsync();
+            }
+            
+            return records;
+        }
+
         public async Task<List<IRecord>> ReadAsync(string query)
         {
             async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query);
@@ -66,6 +91,34 @@ namespace Graphr.Neo4j.QueryExecution
             async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query);
 
             return await ReadAsync(RunAsyncCommand);
+        }
+        
+        public async Task<List<IRecord>> WriteAsync(string query)
+        {
+            async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query);
+
+            return await WriteAsync(RunAsyncCommand);
+        }
+
+        public async Task<List<IRecord>> WriteAsync(string query, object parameters)
+        {
+            async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query, parameters);
+
+            return await WriteAsync(RunAsyncCommand);
+        }
+
+        public async Task<List<IRecord>> WriteAsync(string query, IDictionary<string, object> parameters)
+        {
+            async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query, parameters);
+
+            return await WriteAsync(RunAsyncCommand);
+        }
+
+        public async Task<List<IRecord>> WriteAsync(Query query)
+        {
+            async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query);
+
+            return await WriteAsync(RunAsyncCommand);
         }
     }
 }
