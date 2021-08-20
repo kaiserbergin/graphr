@@ -10,9 +10,10 @@
         <PackageProjectUrl>https://github.com/kaiserbergin/graphr/tree/main/Graphr.Neo4j</PackageProjectUrl>
         <RepositoryUrl>https://github.com/kaiserbergin/graphr</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
-        <Version>0.0.3</Version>
+        <Version>0.0.4</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
