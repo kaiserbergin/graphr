@@ -30,14 +30,14 @@ namespace Graphr.Tests.Graphr
                 .ServiceProvider
                 .GetRequiredService<INeoGraphr>();
 
-            _nonParameterizedQuery = File.ReadAllText(@"Queries\one-to-one.cypher");
-            _parameterizedQuery = File.ReadAllText(@"Queries\parameterized-query.cypher");
-            _oneToManyQuery = File.ReadAllText(@"Queries\one-to-many.cypher");
-            _actorToMovieToReviewerToFollowerQuery = File.ReadAllText(@"Queries\actor-movie-reviewer-follower.cypher");
-            _createMovieQuery = File.ReadAllText(@"Queries\create-movie.cypher");
-            _createMovieParameterizedQuery = File.ReadAllText(@"Queries\create-movie-parameterized.cypher");
-            _deleteCreatedMovieQuery = File.ReadAllText(@"Queries\delete-movie.cypher");
-            _getCreatedMovieQuery = File.ReadAllText(@"Queries\get-created-movie.cypher");
+            _nonParameterizedQuery = File.ReadAllText(@"Queries/one-to-one.cypher");
+            _parameterizedQuery = File.ReadAllText(@"Queries/parameterized-query.cypher");
+            _oneToManyQuery = File.ReadAllText(@"Queries/one-to-many.cypher");
+            _actorToMovieToReviewerToFollowerQuery = File.ReadAllText(@"Queries/actor-movie-reviewer-follower.cypher");
+            _createMovieQuery = File.ReadAllText(@"Queries/create-movie.cypher");
+            _createMovieParameterizedQuery = File.ReadAllText(@"Queries/create-movie-parameterized.cypher");
+            _deleteCreatedMovieQuery = File.ReadAllText(@"Queries/delete-movie.cypher");
+            _getCreatedMovieQuery = File.ReadAllText(@"Queries/get-created-movie.cypher");
         }
 
         public void Dispose()
@@ -142,7 +142,7 @@ namespace Graphr.Tests.Graphr
         public async void ReadAsAsync_CollectedRelatedNodes_ReturnsActorWithMultipleMovies()
         {
             // Arrange
-            const int expectedMovieCount = 13;
+            const int expectedMovieCount = 12;
             var query = new Query(_oneToManyQuery);
 
             // Act

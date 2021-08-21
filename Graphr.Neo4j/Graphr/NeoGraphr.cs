@@ -249,30 +249,40 @@ namespace Graphr.Neo4j.Graphr
             HashSet<long> traversedIds,
             NeoLookups neoLookups)
         {
-            throw new NotImplementedException();
+            var genericListType = typeof(List<>).MakeGenericType(relationshipEntityType) ?? throw new NullReferenceException($@"Could not create generic {relationshipTargetType} typed list from.");
+            var genericRelationshipEntityList = (IList) Activator.CreateInstance(genericListType)!;
+            
+            // Find target node
+            var targetNodeType = GetTargetNodeTypeFromRelationshipEntity();
+            var enumerator = GetTranslatedTargetNodeAndRelationship(sourceNode, neoRelationshipAttribute, targetNodeType, traversedIds, neoLookups);
+
+            foreach (var (node, neoRelationship) in enumerator)
+            {
+                var relationshipEntity = GetRelationshipEnity();
+                AssignRelationshipNeoProps();
+                AssignRelationshipTargetNod();
+                
+                genericRelationshipEntityList.Add(relationshipEntityType);
+            }
+
+            return genericRelationshipEntityList;
         }
 
         private IList TranslateTargetNodes(
             INode sourceNode,
             NeoRelationshipAttribute neoRelationshipAttribute,
-            Type relationshipTargetType,
+            Type targetNodeType,
             HashSet<long> traversedIds,
             NeoLookups neoLookups)
         {
-
-            var genericListType = typeof(List<>).MakeGenericType(relationshipTargetType) ?? throw new NullReferenceException($@"Could not create generic {relationshipTargetType} typed list from.");
+            var genericListType = typeof(List<>).MakeGenericType(targetNodeType) ?? throw new NullReferenceException($@"Could not create generic {targetNodeType} typed list from.");
             var targetNodes = (IList) Activator.CreateInstance(genericListType)!;
 
-            var targetTypeLabels = GetTargetTypeLabels(relationshipTargetType);
-            var relationshipsOfTargetType = neoLookups.RelationshipLookup[neoRelationshipAttribute.Type];
+            var enumerator = GetTranslatedTargetNodeAndRelationship(sourceNode, neoRelationshipAttribute, targetNodeType, traversedIds, neoLookups);
 
-            foreach (var relationship in relationshipsOfTargetType)
+            foreach (var (node, _) in enumerator)
             {
-                if (IsTranslatableRelationship(sourceNode, neoRelationshipAttribute, relationship, targetTypeLabels, neoLookups, out var targetNode))
-                {
-                    var translatedNode = TranslateNode(targetNode!, relationshipTargetType, traversedIds, neoLookups);
-                    targetNodes!.Add(translatedNode);
-                }
+                targetNodes.Add(node);
             }
 
             return targetNodes;
@@ -281,19 +291,19 @@ namespace Graphr.Neo4j.Graphr
         private IEnumerable<(object, IRelationship)> GetTranslatedTargetNodeAndRelationship(
             INode sourceNode,
             NeoRelationshipAttribute neoRelationshipAttribute,
-            Type relationshipTargetType,
+            Type targetNodeType,
             HashSet<long> traversedIds,
             NeoLookups neoLookups)
         {
 
-            var targetTypeLabels = GetTargetTypeLabels(relationshipTargetType);
+            var targetTypeLabels = GetTargetTypeLabels(targetNodeType);
             var relationshipsOfTargetType = neoLookups.RelationshipLookup[neoRelationshipAttribute.Type];
 
             foreach (var relationship in relationshipsOfTargetType)
             {
                 if (IsTranslatableRelationship(sourceNode, neoRelationshipAttribute, relationship, targetTypeLabels, neoLookups, out var targetNode))
                 {
-                    yield return (TranslateNode(targetNode!, relationshipTargetType, traversedIds, neoLookups), relationship);
+                    yield return (TranslateNode(targetNode!, targetNodeType, traversedIds, neoLookups), relationship);
                 }
             }
         }

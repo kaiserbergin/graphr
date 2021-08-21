@@ -12,7 +12,7 @@ namespace Graphr.Neo4j.Driver
 
         ~DriverProvider() => Dispose(false);
 
-        public DriverProvider(NeoDriverConfigurationSettings settings, Neo4jLogger neoLogger = null)
+        public DriverProvider(NeoDriverConfigurationSettings settings, Neo4jLogger? neoLogger = null)
         {
             if (settings?.Url == null || settings.Username == null || settings.Password == null) 
                 throw new ArgumentNullException(nameof(settings));

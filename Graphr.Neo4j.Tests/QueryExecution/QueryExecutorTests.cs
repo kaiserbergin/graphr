@@ -22,8 +22,8 @@ namespace Graphr.Tests.QueryExecution
                 .ServiceProvider
                 .GetRequiredService<IQueryExecutor>();
 
-            _nonParameterizedQuery = File.ReadAllText(@"Queries\one-to-one.cypher");
-            _parameterizedQuery = File.ReadAllText(@"Queries\parameterized-query.cypher");
+            _nonParameterizedQuery = File.ReadAllText(@"Queries/one-to-one.cypher");
+            _parameterizedQuery = File.ReadAllText(@"Queries/parameterized-query.cypher");
         }
 
         [Fact]

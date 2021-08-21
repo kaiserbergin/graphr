@@ -12,7 +12,7 @@ namespace Graphr.Neo4j.Logging
         private readonly bool _isDebugEnabled;
         private readonly bool _isTraceEnabled;
 
-        public NeoLogger(ILogger<NeoLogger> logger, NeoDriverConfigurationSettings settings = null)
+        public NeoLogger(ILogger<NeoLogger> logger, NeoDriverConfigurationSettings? settings = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _isDebugEnabled = settings?.IsDebugLoggingEnabled ?? false;
