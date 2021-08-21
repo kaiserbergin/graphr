@@ -152,6 +152,24 @@ namespace Graphr.Tests.Graphr
             Assert.Single(actorWithMovies);
             Assert.Equal(expectedMovieCount, actorWithMovies.SelectMany(actor => actor.Movie).Count());
         }
+        
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async void ReadAsAsync_NodeWithRelationshipEnitityList_ReturnsActorWithMultipleRelationshipsLinkedToSingularMovies()
+        {
+            // Arrange
+            const int expectedMovieCount = 12;
+            var query = new Query(_oneToManyQuery);
+
+            // Act
+            var actorWithMovies = await _neoGraphr.ReadAsAsync<ActorWithMovieRelationshipEntities>(query);
+
+            // Assert
+            Assert.Single(actorWithMovies);
+            Assert.Equal(expectedMovieCount, actorWithMovies.SelectMany(actor => actor.ActorToMovieRelationships).Count());
+            Assert.True(actorWithMovies.All(actor => actor.ActorToMovieRelationships.All(actorToMovieRelationship => actorToMovieRelationship.Movie != null)));
+            Assert.True(actorWithMovies.All(actor => actor.ActorToMovieRelationships.All(actorToMovieRelationship => actorToMovieRelationship.Roles != null)));
+        }
 
         [Fact]
         [Trait("Category", "Integration")]

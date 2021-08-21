@@ -222,8 +222,24 @@ namespace Graphr.Neo4j.Graphr
                 propertyInfo.SetValue(target, neoProp.As<ZonedDateTime>());
             else if (propertyInfo.PropertyType == typeof(LocalDateTime))
                 propertyInfo.SetValue(target, neoProp.As<LocalDateTime>());
+            else if (propertyInfo.PropertyType != typeof(string) && typeof(IEnumerable).IsAssignableFrom(propertyInfo.PropertyType))
+                SetIEnumerableProperty(propertyInfo, target, neoProp);
             else
                 propertyInfo.SetValue(target, neoProp);
+        }
+
+        private static void SetIEnumerableProperty(PropertyInfo propertyInfo, object target, object neoProp)
+        {
+            var genericType = propertyInfo.PropertyType.GetGenericArguments()[0];
+            var genericListType = typeof(List<>).MakeGenericType(genericType) ?? throw new NullReferenceException($@"Could not create generic {genericType} typed list from.");
+            var genericRelationshipEntityList = (IList) Activator.CreateInstance(genericListType)!;
+
+            foreach (var item in (IList)neoProp)
+            {
+                genericRelationshipEntityList.Add(item);
+            }
+            
+            propertyInfo.SetValue(target, genericRelationshipEntityList);
         }
 
         private IList TranslateRelatedTargets(
@@ -249,24 +265,48 @@ namespace Graphr.Neo4j.Graphr
             HashSet<long> traversedIds,
             NeoLookups neoLookups)
         {
-            var genericListType = typeof(List<>).MakeGenericType(relationshipEntityType) ?? throw new NullReferenceException($@"Could not create generic {relationshipTargetType} typed list from.");
+            var genericListType = typeof(List<>).MakeGenericType(relationshipEntityType) ?? throw new NullReferenceException($@"Could not create generic {relationshipEntityType} typed list from.");
             var genericRelationshipEntityList = (IList) Activator.CreateInstance(genericListType)!;
             
-            // Find target node
-            var targetNodeType = GetTargetNodeTypeFromRelationshipEntity();
+            var targetNodePropertyInfo = GetTargetNodePropertyInfoFromRelationshipEntity(relationshipEntityType);
+            var targetNodeType = targetNodePropertyInfo.PropertyType;
+            
             var enumerator = GetTranslatedTargetNodeAndRelationship(sourceNode, neoRelationshipAttribute, targetNodeType, traversedIds, neoLookups);
 
-            foreach (var (node, neoRelationship) in enumerator)
+            foreach (var (targetNode, neoRelationship) in enumerator)
             {
-                var relationshipEntity = GetRelationshipEnity();
-                AssignRelationshipNeoProps();
-                AssignRelationshipTargetNod();
+                var relationshipEntity = Activator.CreateInstance(relationshipEntityType) ?? throw new NullReferenceException($@"Could not create an instance of {relationshipEntityType}");
+
+                foreach (var propertyInfo in relationshipEntityType.GetProperties())
+                {
+                    foreach (var customAttribute in propertyInfo.GetCustomAttributes())
+                    {
+                        if (customAttribute is NeoPropertyAttribute neoPropertyAttribute)
+                        {
+                            if (neoPropertyAttribute.Name != null && neoRelationship.Properties.TryGetValue(neoPropertyAttribute.Name, out var neoProp))
+                            {
+                                SetPropertyValue(propertyInfo, relationshipEntity, neoProp);
+                                break;
+                            }
+                        }
+
+                        if (customAttribute is NeoTargetNodeAttribute)
+                        {
+                            SetPropertyValue(propertyInfo, relationshipEntity, targetNode);
+                        }
+                    }
+                }
                 
-                genericRelationshipEntityList.Add(relationshipEntityType);
+                genericRelationshipEntityList.Add(relationshipEntity);
             }
 
             return genericRelationshipEntityList;
         }
+
+        private PropertyInfo GetTargetNodePropertyInfoFromRelationshipEntity(Type relationshipEntityType) =>
+            relationshipEntityType
+                .GetProperties()
+                .Single(info => Attribute.GetCustomAttributes(info).Count(attribute => attribute is NeoTargetNodeAttribute) == 1);
 
         private IList TranslateTargetNodes(
             INode sourceNode,
