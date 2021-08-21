@@ -196,9 +196,9 @@ namespace Graphr.Neo4j.Graphr
                     if (typeof(string) != relationshipTargetType && typeof(IEnumerable).IsAssignableFrom(relationshipTargetType))
                     {
                         var relationshipTargetGenericType = relationshipTargetType.GetGenericArguments()[0];
-                        var targetNodes = TranslateRelatedNodes(neoNode, neoRelationshipAttribute, relationshipTargetGenericType, traversedIds, neoLookups);
+                        var targetClasses = TranslateRelatedTargets(neoNode, neoRelationshipAttribute, relationshipTargetGenericType, traversedIds, neoLookups);
 
-                        propertyInfo.SetValue(target, targetNodes);
+                        propertyInfo.SetValue(target, targetClasses);
                     }
                     else
                     {
@@ -226,18 +226,44 @@ namespace Graphr.Neo4j.Graphr
                 propertyInfo.SetValue(target, neoProp);
         }
 
-        private IList TranslateRelatedNodes(
+        private IList TranslateRelatedTargets(
             INode sourceNode,
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type relationshipTargetType,
             HashSet<long> traversedIds,
             NeoLookups neoLookups)
         {
-            var targetTypeLabels = GetTargetTypeLabels(relationshipTargetType);
+            return IsRelationshipEntity(relationshipTargetType)
+                ? TranslateRelationshipEntityBasedTargets(sourceNode, neoRelationshipAttribute, relationshipTargetType, traversedIds, neoLookups)
+                : TranslateTargetNodes(sourceNode, neoRelationshipAttribute, relationshipTargetType, traversedIds, neoLookups);
+        }
+
+        private bool IsRelationshipEntity(Type relationshipTargetType) =>
+            Attribute.GetCustomAttributes(relationshipTargetType).Any(attribute => attribute is NeoRelationshipEntityAttribute);
+
+
+        private IList TranslateRelationshipEntityBasedTargets(
+            INode sourceNode,
+            NeoRelationshipAttribute neoRelationshipAttribute,
+            Type relationshipEntityType,
+            HashSet<long> traversedIds,
+            NeoLookups neoLookups)
+        {
+            throw new NotImplementedException();
+        }
+
+        private IList TranslateTargetNodes(
+            INode sourceNode,
+            NeoRelationshipAttribute neoRelationshipAttribute,
+            Type relationshipTargetType,
+            HashSet<long> traversedIds,
+            NeoLookups neoLookups)
+        {
 
             var genericListType = typeof(List<>).MakeGenericType(relationshipTargetType) ?? throw new NullReferenceException($@"Could not create generic {relationshipTargetType} typed list from.");
             var targetNodes = (IList) Activator.CreateInstance(genericListType)!;
 
+            var targetTypeLabels = GetTargetTypeLabels(relationshipTargetType);
             var relationshipsOfTargetType = neoLookups.RelationshipLookup[neoRelationshipAttribute.Type];
 
             foreach (var relationship in relationshipsOfTargetType)
@@ -250,6 +276,26 @@ namespace Graphr.Neo4j.Graphr
             }
 
             return targetNodes;
+        }
+
+        private IEnumerable<(object, IRelationship)> GetTranslatedTargetNodeAndRelationship(
+            INode sourceNode,
+            NeoRelationshipAttribute neoRelationshipAttribute,
+            Type relationshipTargetType,
+            HashSet<long> traversedIds,
+            NeoLookups neoLookups)
+        {
+
+            var targetTypeLabels = GetTargetTypeLabels(relationshipTargetType);
+            var relationshipsOfTargetType = neoLookups.RelationshipLookup[neoRelationshipAttribute.Type];
+
+            foreach (var relationship in relationshipsOfTargetType)
+            {
+                if (IsTranslatableRelationship(sourceNode, neoRelationshipAttribute, relationship, targetTypeLabels, neoLookups, out var targetNode))
+                {
+                    yield return (TranslateNode(targetNode!, relationshipTargetType, traversedIds, neoLookups), relationship);
+                }
+            }
         }
 
         private HashSet<string> GetTargetTypeLabels(Type targetNodeType)
