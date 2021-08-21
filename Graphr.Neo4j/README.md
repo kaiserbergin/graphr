@@ -36,7 +36,7 @@ If you don't know where this goes, you shouldn't be trying to use this yet...
 services.AddNeoGraphr(configuration);
 ```
 
-### Setting Up Your Entites
+### Setting Up Your Entities
 Now add some attributes to your beautiful entities!
 ```c#
 [NeoNode("Person")]
@@ -65,6 +65,47 @@ public class Movie
     public long Released { get; set; }
 }
 ```
+You can also inherit from `[RelationshipEntity]` as long as you declare one of your props as 
+the `[TargetNode]` like so:
+```c#
+[NeoNode("Person")]
+public class Actor 
+{
+    [NeoProperty("name")]
+    public string Name { get; set; }
+    
+    [NeoProperty("born")]
+    public long Born { get; set; }
+    
+    [NeoRelationship(type: "ACTED_IN", direction: RelationshipDirection.Outgoing)]
+    public IEnumerable<ActorToMovieRelationship> Movie { get; set; }
+}
+
+[NeoRelationshipEntity]
+public class ActorToMovieRelationship
+{
+    [NeoProperty("roles")]
+    public IEnumerable<string> Roles { get; set; }
+
+    [NeoTargetNode]
+    public Movie Movie { get; set; }
+}
+
+[NeoNode("Movie")]
+public class Movie
+{
+    [NeoProperty("tagline")]
+    public string Description { get; set; }
+    
+    [NeoProperty("title")]
+    public string Title { get; set; }
+
+    [NeoProperty("released")]
+    public long Released { get; set; }
+}
+
+```
+
 If you're familiar with Neo4j, then these attributes are pretty self explanatory. If
 not, I encourage you to check out Neo4j's documentation or their Graph Academy and
 get learnt and then get back here.
@@ -116,7 +157,11 @@ Here's where my heads at and where I want to take this
 - [x] ~~Simple node mapping (one to one and one to many)~~
 - [x] ~~Circular Reference Issues~~
 - [x] ~~Basic Dependency Injection Extension~~
-- [ ] Mapping of `[NeoRelationshipEntity]` attribute
+- [x] ~~Mapping of `[NeoRelationshipEntity]` attribute~~
+- [x] ~~Mapping of Cypher Type List (simple)~~
+- [ ] Mapping of Cypher Type Map (simple)
+- [ ] Mapping of Cypher Type List (complex)
+- [ ] Mapping of Cypher Type Map (complex)
 - [ ] Add `[NeoResult]` attribute to map non-node record responses
 - [ ] More configuration options
 - [ ] Fix all the bugs I haven't found yet... Or at least the worst ones
