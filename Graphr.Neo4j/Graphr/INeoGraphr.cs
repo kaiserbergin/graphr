@@ -10,7 +10,6 @@ namespace Graphr.Neo4j.Graphr
         Task<List<T>> ReadAsAsync<T>(string query, object parameters) where T : class, new();
         Task<List<T>> ReadAsAsync<T>(string query, IDictionary<string, object> parameters) where T : class, new();
         Task<List<T>> ReadAsAsync<T>(Query query) where T : class, new();
-        List<T> Translate<T>(List<IRecord> records) where T : class, new();
         Task<List<T>> WriteAsAsync<T>(string query) where T : class, new();
         Task<List<T>> WriteAsAsync<T>(string query, object parameters) where T : class, new();
         Task<List<T>> WriteAsAsync<T>(string query, IDictionary<string, object> parameters) where T : class, new();
