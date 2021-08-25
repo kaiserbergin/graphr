@@ -10,32 +10,44 @@ namespace Graphr.Neo4j.Translator
     {
         internal static void SetPropertyValue(PropertyInfo propertyInfo, object target, object neoProp)
         {
-            if (propertyInfo.PropertyType == typeof(LocalDate))
-                propertyInfo.SetValue(target, neoProp.As<LocalDate>());
-            else if (propertyInfo.PropertyType == typeof(LocalTime))
-                propertyInfo.SetValue(target, neoProp.As<LocalTime>());
-            else if (propertyInfo.PropertyType == typeof(ZonedDateTime))
-                propertyInfo.SetValue(target, neoProp.As<ZonedDateTime>());
-            else if (propertyInfo.PropertyType == typeof(LocalDateTime))
-                propertyInfo.SetValue(target, neoProp.As<LocalDateTime>());
-            else if (propertyInfo.PropertyType != typeof(string) && typeof(IEnumerable).IsAssignableFrom(propertyInfo.PropertyType))
-                SetIEnumerableProperty(propertyInfo, target, neoProp);
-            else
-                propertyInfo.SetValue(target, neoProp);
+            var convertedNeoProp = ConvertToClrType(propertyInfo.PropertyType, neoProp);
+            propertyInfo.SetValue(target, convertedNeoProp);
         }
 
-        private static void SetIEnumerableProperty(PropertyInfo propertyInfo, object target, object neoProp)
+        private static object? ConvertToClrType(Type type, object? neoProp)
         {
-            var genericType = propertyInfo.PropertyType.GetGenericArguments()[0];
+            if (IsGenericIEnumerable(type))
+                return CreateListFromNeo(type, neoProp);
+
+            if (type == typeof(DateTime))
+                return neoProp.As<DateTime>();
+            if (type == typeof(DateTimeOffset))
+                return neoProp.As<DateTimeOffset>();
+            if (type == typeof(TimeSpan))
+                return neoProp.As<TimeSpan>();
+
+            return neoProp;
+        }
+
+        private static object CreateListFromNeo(Type type, object? neoProp)
+        {
+            var genericType = type.GetGenericArguments()[0];
+
             var genericListType = typeof(List<>).MakeGenericType(genericType) ?? throw new NullReferenceException($@"Could not create generic {genericType} typed list from.");
-            var genericRelationshipEntityList = (IList) Activator.CreateInstance(genericListType)!;
+            var instance = (IList) Activator.CreateInstance(genericListType)!;
+
+            if (neoProp == null) return instance;
 
             foreach (var item in (IList) neoProp)
             {
-                genericRelationshipEntityList.Add(item);
+                var convertedItem = ConvertToClrType(genericType, item);
+                instance.Add(Convert.ChangeType(convertedItem, genericType));
             }
 
-            propertyInfo.SetValue(target, genericRelationshipEntityList);
+            return instance;
         }
+
+        private static bool IsGenericIEnumerable(Type type) =>
+            type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(type) && type.IsGenericType;
     }
 }

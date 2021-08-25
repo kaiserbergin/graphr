@@ -159,9 +159,7 @@ Here's where my heads at and where I want to take this
 - [x] ~~Basic Dependency Injection Extension~~
 - [x] ~~Mapping of `[NeoRelationshipEntity]` attribute~~
 - [x] ~~Mapping of Cypher Type List (simple)~~
-- [ ] Mapping of Cypher Type Map (simple)
-- [ ] Mapping of Cypher Type List (complex)
-- [ ] Mapping of Cypher Type Map (complex)
+- [x] ~~Cypher Temporal to CLR Conversions~~
 - [ ] Add `[NeoResult]` attribute to map non-node record responses
 - [ ] More configuration options
 - [ ] Fix all the bugs I haven't found yet... Or at least the worst ones

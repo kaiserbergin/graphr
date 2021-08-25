@@ -1,0 +1,1 @@
+﻿MATCH (n:ValueTypesNode) DELETE n
