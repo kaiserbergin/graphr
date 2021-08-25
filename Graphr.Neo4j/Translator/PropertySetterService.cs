@@ -10,15 +10,25 @@ namespace Graphr.Neo4j.Translator
     {
         internal static void SetPropertyValue(PropertyInfo propertyInfo, object target, object neoProp)
         {
-            if (propertyInfo.PropertyType == typeof(LocalDate))
-                propertyInfo.SetValue(target, neoProp.As<LocalDate>());
-            else if (propertyInfo.PropertyType == typeof(LocalTime))
-                propertyInfo.SetValue(target, neoProp.As<LocalTime>());
-            else if (propertyInfo.PropertyType == typeof(ZonedDateTime))
-                propertyInfo.SetValue(target, neoProp.As<ZonedDateTime>());
-            else if (propertyInfo.PropertyType == typeof(LocalDateTime))
-                propertyInfo.SetValue(target, neoProp.As<LocalDateTime>());
-            else if (propertyInfo.PropertyType != typeof(string) && typeof(IEnumerable).IsAssignableFrom(propertyInfo.PropertyType))
+            // var targetType = propertyInfo.PropertyType;
+            // MethodInfo invocableAsMethod = typeof(ValueExtensions).GetRuntimeMethod("AS", targetType)
+            //
+            // if (propertyInfo.PropertyType == typeof(LocalDate))
+            //     propertyInfo.SetValue(target, neoProp.As<LocalDate>());
+            // else if (propertyInfo.PropertyType == typeof(LocalTime))
+            //     propertyInfo.SetValue(target, neoProp.As<LocalTime>());
+            // else if (propertyInfo.PropertyType == typeof(ZonedDateTime))
+            //     propertyInfo.SetValue(target, neoProp.As<ZonedDateTime>());
+            // else if (propertyInfo.PropertyType == typeof(LocalDateTime))
+            //     propertyInfo.SetValue(target, neoProp.As<LocalDateTime>());
+            // else
+            if (propertyInfo.PropertyType == typeof(DateTime))
+                propertyInfo.SetValue(target, neoProp.As<DateTime>());
+            else if (propertyInfo.PropertyType == typeof(DateTimeOffset))
+                propertyInfo.SetValue(target, neoProp.As<DateTimeOffset>());
+            else if (propertyInfo.PropertyType == typeof(TimeSpan))
+                propertyInfo.SetValue(target, neoProp.As<TimeSpan>());
+            else if (IsGenericIEnumerable(propertyInfo.PropertyType))
                 SetIEnumerableProperty(propertyInfo, target, neoProp);
             else
                 propertyInfo.SetValue(target, neoProp);
@@ -26,16 +36,29 @@ namespace Graphr.Neo4j.Translator
 
         private static void SetIEnumerableProperty(PropertyInfo propertyInfo, object target, object neoProp)
         {
-            var genericType = propertyInfo.PropertyType.GetGenericArguments()[0];
-            var genericListType = typeof(List<>).MakeGenericType(genericType) ?? throw new NullReferenceException($@"Could not create generic {genericType} typed list from.");
-            var genericRelationshipEntityList = (IList) Activator.CreateInstance(genericListType)!;
+            var list = CreateListFromNeo(propertyInfo.PropertyType, neoProp);
+            
+            propertyInfo.SetValue(target, list);
+        }
 
+        private static object CreateListFromNeo(Type type, object neoProp)
+        {
+            var genericType = type.GetGenericArguments()[0];
+            
+            var genericListType = typeof(List<>).MakeGenericType(genericType) ?? throw new NullReferenceException($@"Could not create generic {genericType} typed list from.");
+            var instance = (IList) Activator.CreateInstance(genericListType)!;
+
+            if (neoProp == null) return instance;
+            
             foreach (var item in (IList) neoProp)
             {
-                genericRelationshipEntityList.Add(item);
+                instance.Add(Convert.ChangeType(item, genericType));
             }
 
-            propertyInfo.SetValue(target, genericRelationshipEntityList);
+            return instance;
         }
+
+        private static bool IsGenericIEnumerable(Type type) =>
+            type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(type) && type.IsGenericType;
     }
 }

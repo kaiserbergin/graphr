@@ -1,0 +1,1 @@
+﻿MATCH (n:ValueTypesNode) RETURN n LIMIT 1

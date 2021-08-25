@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Graphr.Neo4j.Graphr;
+using Graphr.Neo4j.QueryExecution;
 using Graphr.Tests.Fixtures;
 using Graphr.Tests.Graphr.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,8 @@ namespace Graphr.Tests.Graphr
     public class GraphrTests : IDisposable
     {
         private readonly INeoGraphr _neoGraphr;
+        private readonly IQueryExecutor _queryExecutor;
+        
         private readonly string _nonParameterizedQuery;
         private readonly string _parameterizedQuery;
         private readonly string _oneToManyQuery;
@@ -23,12 +26,19 @@ namespace Graphr.Tests.Graphr
         private readonly string _createMovieParameterizedQuery;
         private readonly string _deleteCreatedMovieQuery;
         private readonly string _getCreatedMovieQuery;
+        private readonly string _createNodeForTypeTestingQuery;
+        private readonly string _retrieveNodeForTypeTestingQuery;
+        private readonly string _deleteNodeForTypeTestingQuery;
 
         public GraphrTests(ServiceProviderFixture serviceProviderFixture)
         {
             _neoGraphr = serviceProviderFixture
                 .ServiceProvider
                 .GetRequiredService<INeoGraphr>();
+            
+            _queryExecutor = serviceProviderFixture
+                .ServiceProvider
+                .GetRequiredService<IQueryExecutor>();
 
             _nonParameterizedQuery = File.ReadAllText(@"Queries/one-to-one.cypher");
             _parameterizedQuery = File.ReadAllText(@"Queries/parameterized-query.cypher");
@@ -38,6 +48,9 @@ namespace Graphr.Tests.Graphr
             _createMovieParameterizedQuery = File.ReadAllText(@"Queries/create-movie-parameterized.cypher");
             _deleteCreatedMovieQuery = File.ReadAllText(@"Queries/delete-movie.cypher");
             _getCreatedMovieQuery = File.ReadAllText(@"Queries/get-created-movie.cypher");
+            _createNodeForTypeTestingQuery = File.ReadAllText(@"Queries/create-node-for-type-testing.cypher");
+            _retrieveNodeForTypeTestingQuery = File.ReadAllText(@"Queries/retrieve-type-test-node.cypher");
+            _deleteNodeForTypeTestingQuery = File.ReadAllText(@"Queries/delete-node-for-type-testing.cypher");
         }
 
         public void Dispose()
@@ -170,6 +183,23 @@ namespace Graphr.Tests.Graphr
             Assert.True(actorWithMovies.All(actor => actor.ActorToMovieRelationships.All(actorToMovieRelationship => actorToMovieRelationship.Movie != null)));
             Assert.True(actorWithMovies.All(actor => actor.ActorToMovieRelationships.All(actorToMovieRelationship => actorToMovieRelationship.Roles != null)));
         }
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async void ReadAsync_NodeWithAllSupportedTypes_ReturnsProperlyMappedClass()
+        {
+            // Arrange
+            await _queryExecutor.WriteAsync(_deleteNodeForTypeTestingQuery);
+            await _queryExecutor.WriteAsync(_createNodeForTypeTestingQuery);
+            
+            var query = new Query(_retrieveNodeForTypeTestingQuery);
+
+            // Actssert
+            await _neoGraphr.ReadAsAsync<ValueTypesNode>(query);
+
+            await _queryExecutor.WriteAsync(_deleteNodeForTypeTestingQuery);
+        }
+        
 
         [Fact]
         [Trait("Category", "Integration")]
