@@ -10,18 +10,6 @@ namespace Graphr.Neo4j.Translator
     {
         internal static void SetPropertyValue(PropertyInfo propertyInfo, object target, object neoProp)
         {
-            // var targetType = propertyInfo.PropertyType;
-            // MethodInfo invocableAsMethod = typeof(ValueExtensions).GetRuntimeMethod("AS", targetType)
-            //
-            // if (propertyInfo.PropertyType == typeof(LocalDate))
-            //     propertyInfo.SetValue(target, neoProp.As<LocalDate>());
-            // else if (propertyInfo.PropertyType == typeof(LocalTime))
-            //     propertyInfo.SetValue(target, neoProp.As<LocalTime>());
-            // else if (propertyInfo.PropertyType == typeof(ZonedDateTime))
-            //     propertyInfo.SetValue(target, neoProp.As<ZonedDateTime>());
-            // else if (propertyInfo.PropertyType == typeof(LocalDateTime))
-            //     propertyInfo.SetValue(target, neoProp.As<LocalDateTime>());
-            // else
             if (propertyInfo.PropertyType == typeof(DateTime))
                 propertyInfo.SetValue(target, neoProp.As<DateTime>());
             else if (propertyInfo.PropertyType == typeof(DateTimeOffset))
