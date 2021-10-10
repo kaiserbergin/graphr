@@ -25,6 +25,8 @@ namespace Graphr.Neo4j.Translator
                 return neoProp.As<DateTimeOffset>();
             if (type == typeof(TimeSpan))
                 return neoProp.As<TimeSpan>();
+            if (type == typeof(string))
+                return neoProp.As<string>();
 
             return neoProp;
         }

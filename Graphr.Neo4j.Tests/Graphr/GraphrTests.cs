@@ -16,7 +16,6 @@ namespace Graphr.Tests.Graphr
     public class GraphrTests : IDisposable
     {
         private readonly INeoGraphr _neoGraphr;
-        private readonly IQueryExecutor _queryExecutor;
         
         private readonly string _nonParameterizedQuery;
         private readonly string _parameterizedQuery;
@@ -36,10 +35,6 @@ namespace Graphr.Tests.Graphr
                 .ServiceProvider
                 .GetRequiredService<INeoGraphr>();
             
-            _queryExecutor = serviceProviderFixture
-                .ServiceProvider
-                .GetRequiredService<IQueryExecutor>();
-
             _nonParameterizedQuery = File.ReadAllText(@"Queries/one-to-one.cypher");
             _parameterizedQuery = File.ReadAllText(@"Queries/parameterized-query.cypher");
             _oneToManyQuery = File.ReadAllText(@"Queries/one-to-many.cypher");
@@ -189,15 +184,15 @@ namespace Graphr.Tests.Graphr
         public async void ReadAsync_NodeWithAllSupportedTypes_ReturnsProperlyMappedClass()
         {
             // Arrange
-            await _queryExecutor.WriteAsync(_deleteNodeForTypeTestingQuery);
-            await _queryExecutor.WriteAsync(_createNodeForTypeTestingQuery);
+            await _neoGraphr.WriteAsync(_deleteNodeForTypeTestingQuery);
+            await _neoGraphr.WriteAsync(_createNodeForTypeTestingQuery);
             
             var query = new Query(_retrieveNodeForTypeTestingQuery);
 
             // Actssert
-            await _neoGraphr.ReadAsAsync<ValueTypesNode>(query);
-
-            await _queryExecutor.WriteAsync(_deleteNodeForTypeTestingQuery);
+            var idonttrustme = await _neoGraphr.ReadAsAsync<ValueTypesNode>(query);
+            
+            await _neoGraphr.WriteAsync(_deleteNodeForTypeTestingQuery);
         }
         
 
