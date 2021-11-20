@@ -19,5 +19,6 @@ SET n = {
   dateTimeForDateTimeOffset: datetime(),
   localDateTime: localdatetime(),
   localDateTimeForDateTime: localdatetime(),
-  duration: duration('P14DT16H12M')
+  duration: duration('P14DT16H12M'),
+  floatForString: 1.002
 }

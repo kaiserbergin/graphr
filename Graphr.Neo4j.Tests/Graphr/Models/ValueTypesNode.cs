@@ -44,5 +44,7 @@ namespace Graphr.Tests.Graphr.Models
         public LocalDate LocalDateFromDate { get; set; }
         [NeoProperty("timestamp")]
         public long Timestamp { get; set; }
+        [NeoProperty("floatForString")]
+        public string FloatButItsAString { get; set; }
     }
 }
