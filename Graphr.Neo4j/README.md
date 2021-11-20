@@ -12,7 +12,7 @@ you of understanding what the heck you're doing.
 Simply install via nuget in your favorite IDE (it's Rider), or use the command line.
 
 ```powershell
-Install-Package Graphr.Neo4j -Version 0.0.3
+Install-Package Graphr.Neo4j -Version 0.0.9
 ```
 
 ## Usage
@@ -161,7 +161,7 @@ Here's where my heads at and where I want to take this
 - [x] ~~Mapping of Cypher Type List (simple)~~
 - [x] ~~Cypher Temporal to CLR Conversions~~
 - [ ] Add `[NeoResult]` attribute to map non-node record responses
-- [ ] More configuration options
+- [x] ~~More configuration options~~
 - [ ] Fix all the bugs I haven't found yet... Or at least the worst ones
 
 ## Contributing
