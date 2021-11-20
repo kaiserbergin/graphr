@@ -1,6 +1,8 @@
+using Neo4j.Driver;
+
 namespace Graphr.Neo4j.Configuration
 {
-    public class NeoDriverConfigurationSettings
+    public class NeoDriverConfigurationSettings : Config
     {
         public string? Url { get; set; }
         public string? Username { get; set; }

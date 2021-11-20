@@ -22,8 +22,23 @@ namespace Graphr.Neo4j.Driver
                 AuthTokens.Basic(settings.Username, settings.Password),
                 builder =>
                 {
-                    if (neoLogger != null)
-                        builder.WithLogger(neoLogger);
+                    if (neoLogger != null) builder.WithLogger(neoLogger);
+                    builder
+                        .WithEncryptionLevel(settings.EncryptionLevel)
+                        .WithMaxTransactionRetryTime(settings.MaxTransactionRetryTime)
+                        .WithMaxIdleConnectionPoolSize(settings.MaxConnectionPoolSize)
+                        .WithMaxConnectionPoolSize(settings.MaxConnectionPoolSize)
+                        .WithConnectionAcquisitionTimeout(settings.ConnectionAcquisitionTimeout)
+                        .WithConnectionTimeout(settings.ConnectionTimeout)
+                        .WithSocketKeepAliveEnabled(settings.SocketKeepAlive)
+                        .WithConnectionIdleTimeout(settings.ConnectionIdleTimeout)
+                        .WithMaxConnectionLifetime(settings.MaxConnectionLifetime)
+                        .WithIpv6Enabled(settings.Ipv6Enabled)
+                        .WithDefaultReadBufferSize(settings.DefaultReadBufferSize)
+                        .WithMaxReadBufferSize(settings.MaxReadBufferSize)
+                        .WithDefaultWriteBufferSize(settings.DefaultWriteBufferSize)
+                        .WithMaxWriteBufferSize(settings.MaxWriteBufferSize)
+                        .WithFetchSize(settings.FetchSize);
                 });
         }
 
