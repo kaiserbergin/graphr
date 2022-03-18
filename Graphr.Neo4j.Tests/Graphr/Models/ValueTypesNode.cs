@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Graphr.Neo4j.Attributes;
 using Neo4j.Driver;
 
@@ -16,6 +18,16 @@ namespace Graphr.Tests.Graphr.Models
         public string String { get; set; }
         [NeoProperty("intList")]
         public List<int> IntList { get; set; }
+        [NeoProperty("intList")]
+        public IEnumerable<int> IntIEnumerable { get; set; }
+        [NeoProperty("intList")]
+        public ICollection<int> ICollectionEnumerable { get; set; }
+        [NeoProperty("intList")]
+        public Collection<int> IntCollection { get; set; }
+        [NeoProperty("intList")]
+        public HashSet<string> IntHash { get; set; }
+        [NeoProperty("intList")]
+        public int[] IntArray { get; set; }
         [NeoProperty("float")]
         public double FloatButItsADouble { get; set; }
         [NeoProperty("point")]
