@@ -54,7 +54,7 @@ namespace Graphr.Neo4j.Translator
             traversedIds = new HashSet<long>(traversedIds);
             var isFirstTraversal = traversedIds.Add(neoNode.Id);
 
-            var target = Activator.CreateInstance(targetType) ?? throw new NullReferenceException($@"Could not create an instance of {targetType}");
+            var target = Activator.CreateInstance(targetType) ?? throw new ArgumentException($"Could not create an instance of {targetType}");
 
             var targetProperties = targetType.GetProperties();
 
@@ -62,9 +62,16 @@ namespace Graphr.Neo4j.Translator
             {
                 NeoPropertyAttribute? neoPropertyAttribute = null;
                 NeoRelationshipAttribute? neoRelationshipAttribute = null;
+                NeoLabelsAttribute? neoLabelsAttribute = null;
 
                 foreach (var customAttribute in Attribute.GetCustomAttributes(propertyInfo))
                 {
+                    if (customAttribute is NeoLabelsAttribute labelAttribute)
+                    {
+                        neoLabelsAttribute = labelAttribute;
+                        break;
+                    }
+                    
                     if (customAttribute is NeoPropertyAttribute propertyAttribute)
                     {
                         neoPropertyAttribute = propertyAttribute;
@@ -76,6 +83,16 @@ namespace Graphr.Neo4j.Translator
                         neoRelationshipAttribute = relationshipAttribute;
                         break;
                     }
+                }
+
+                if (neoLabelsAttribute != null)
+                {
+                    if (propertyInfo.PropertyType.IsArray || EnumerableService.IsGenericIEnumerable(propertyInfo.PropertyType) && EnumerableService.CanAssignToIEnumerable(neoNode.Labels))
+                        PropertySetterService.SetPropertyValue(propertyInfo, target, neoNode.Labels);
+                    else
+                        throw new Exception($"You done messed up, Labels needs to be generic type but you used {propertyInfo.PropertyType} for {propertyInfo.Name}");
+                    
+                    continue;
                 }
 
                 if (neoPropertyAttribute?.Name != null && neoNode.Properties.TryGetValue(neoPropertyAttribute.Name, out var neoProp))
