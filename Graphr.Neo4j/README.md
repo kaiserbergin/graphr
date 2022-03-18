@@ -12,7 +12,7 @@ you of understanding what the heck you're doing.
 Simply install via nuget in your favorite IDE (it's Rider), or use the command line.
 
 ```powershell
-Install-Package Graphr.Neo4j -Version 0.0.9
+Install-Package Graphr.Neo4j -Version 0.0.10
 ```
 
 ## Usage
@@ -42,6 +42,9 @@ Now add some attributes to your beautiful entities!
 [NeoNode("Person")]
 public class Actor 
 {
+    [NeoLabels]
+    public IEnumerable<string> Labels { get; set; }
+
     [NeoProperty("name")]
     public string Name { get; set; }
     
