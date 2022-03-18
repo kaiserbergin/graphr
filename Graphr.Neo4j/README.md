@@ -154,6 +154,9 @@ public class Neo4jRocks
   
 ## Road Map
 Here's where my heads at and where I want to take this
+- [ ] Split up child nugets so you don't get DI stuff in the base package
+- [x] ~~Support for Labels~~
+- [x] ~~Better support for IEnumerables~~
 - [x] ~~Simple node mapping (one to one and one to many)~~
 - [x] ~~Circular Reference Issues~~
 - [x] ~~Basic Dependency Injection Extension~~
