@@ -18,7 +18,7 @@ namespace Graphr.Neo4j.QueryExecution
         {
             _driver = driverProvider.Driver ?? throw new ArgumentNullException(nameof(driverProvider));
             _neoDriverConfigurationSettings = neoDriverConfigurationSettings ?? throw new ArgumentNullException(nameof(neoDriverConfigurationSettings));
-            _timeout = TimeSpan.FromMilliseconds(neoDriverConfigurationSettings.QueryTimeoutInMs);
+            _timeout = TimeSpan.FromMilliseconds(neoDriverConfigurationSettings.QueryTimeoutInMs!.Value);
         }
 
         private async Task<List<IRecord>> ReadAsync(Func<IAsyncTransaction, Task<IResultCursor>> runAsyncCommand, CancellationToken cancellationToken)

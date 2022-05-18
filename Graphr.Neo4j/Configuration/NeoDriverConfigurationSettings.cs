@@ -1,3 +1,4 @@
+using System;
 using Neo4j.Driver;
 
 namespace Graphr.Neo4j.Configuration
@@ -9,6 +10,11 @@ namespace Graphr.Neo4j.Configuration
         public string? Password { get; set; }
         public bool IsDebugLoggingEnabled { get; set; }
         public bool IsTraceLoggingEnabled { get; set; }
-        public int QueryTimeoutInMs { get; set; } = 250;
+        public int? QueryTimeoutInMs { get; set; } = 250;
+        public int? MaxTransactionRetryTimeMs { get; set; } = 30_000;
+        public int? ConnectionAcquisitionTimeoutMs { get; set; } = 100_000;
+        public int? ConnectionTimeoutMs { get; set; } = 30_000;
+        public long? ConnectionIdleTimeoutMs { get; set; } = -1;
+        public long? MaxConnectionLifetimeMs { get; set; } = 3_600_000;
     }
 }
