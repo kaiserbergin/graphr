@@ -23,8 +23,11 @@ namespace Graphr.Neo4j.Driver
                 builder =>
                 {
                     if (neoLogger != null) builder.WithLogger(neoLogger);
+
+                    if (settings.EncryptionLevel != null && Enum.TryParse<EncryptionLevel>(settings.EncryptionLevel, out var encryptionLevel))
+                        builder.WithEncryptionLevel(encryptionLevel);
+                    
                     builder
-                        .WithEncryptionLevel(settings.EncryptionLevel)
                         .WithMaxTransactionRetryTime(TimeSpan.FromMilliseconds(settings.MaxTransactionRetryTimeMs!.Value))
                         .WithMaxIdleConnectionPoolSize(settings.MaxConnectionPoolSize)
                         .WithMaxConnectionPoolSize(settings.MaxConnectionPoolSize)
