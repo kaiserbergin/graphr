@@ -12,7 +12,7 @@ you of understanding what the heck you're doing.
 Simply install via nuget in your favorite IDE (it's Rider), or use the command line.
 
 ```powershell
-Install-Package Graphr.Neo4j -Version 0.0.12
+Install-Package Graphr.Neo4j -Version 0.0.13
 ```
 
 ## Usage
