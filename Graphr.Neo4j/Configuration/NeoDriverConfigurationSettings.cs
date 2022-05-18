@@ -9,5 +9,6 @@ namespace Graphr.Neo4j.Configuration
         public string? Password { get; set; }
         public bool IsDebugLoggingEnabled { get; set; }
         public bool IsTraceLoggingEnabled { get; set; }
+        public int QueryTimeoutInMs { get; set; } = 250;
     }
 }
