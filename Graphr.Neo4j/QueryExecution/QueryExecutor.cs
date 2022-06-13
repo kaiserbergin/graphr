@@ -8,21 +8,23 @@ using Neo4j.Driver;
 
 namespace Graphr.Neo4j.QueryExecution
 {
-    public class QueryExecutor : IQueryExecutor
+    internal class QueryExecutor : IQueryExecutor
     {
         private readonly IDriver _driver;
-        private readonly NeoDriverConfigurationSettings _neoDriverConfigurationSettings;
+        private readonly NeoDriverConfigurationSettings _settings;
         private readonly TimeSpan _timeout;
-
         public QueryExecutor(IDriverProvider driverProvider, NeoDriverConfigurationSettings neoDriverConfigurationSettings)
         {
             _driver = driverProvider.Driver ?? throw new ArgumentNullException(nameof(driverProvider));
-            _neoDriverConfigurationSettings = neoDriverConfigurationSettings ?? throw new ArgumentNullException(nameof(neoDriverConfigurationSettings));
+            _settings = neoDriverConfigurationSettings ?? throw new ArgumentNullException(nameof(neoDriverConfigurationSettings));
             _timeout = TimeSpan.FromMilliseconds(neoDriverConfigurationSettings.QueryTimeoutInMs!.Value);
         }
 
         private async Task<List<IRecord>> ReadAsync(Func<IAsyncTransaction, Task<IResultCursor>> runAsyncCommand, CancellationToken cancellationToken)
         {
+            if (_settings.VerifyConnectivity)
+                await _driver.VerifyConnectivityAsync();
+            
             var records = new List<IRecord>();
             await using var session = _driver.AsyncSession();
 
@@ -51,6 +53,9 @@ namespace Graphr.Neo4j.QueryExecution
 
         private async Task<List<IRecord>> WriteAsync(Func<IAsyncTransaction, Task<IResultCursor>> runAsyncCommand, CancellationToken cancellationToken)
         {
+            if (_settings.VerifyConnectivity)
+                await _driver.VerifyConnectivityAsync();
+            
             var records = new List<IRecord>();
             await using var session = _driver.AsyncSession();
 

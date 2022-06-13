@@ -12,7 +12,7 @@ you of understanding what the heck you're doing.
 Simply install via nuget in your favorite IDE (it's Rider), or use the command line.
 
 ```powershell
-Install-Package Graphr.Neo4j -Version 0.0.14
+Install-Package Graphr.Neo4j -Version 0.1.0
 ```
 
 ## Usage
@@ -158,6 +158,9 @@ public class Neo4jRocks
 ## Road Map
 Here's where my heads at and where I want to take this
 - [ ] Split up child nugets so you don't get DI stuff in the base package
+- [ ] Add `[NeoResult]` attribute to map non-node record responses
+- [x] ~~Healthchecks~~
+- [x] ~~Driver Best Practices~~
 - [x] ~~Support for Labels~~
 - [x] ~~Better support for IEnumerables~~
 - [x] ~~Simple node mapping (one to one and one to many)~~
@@ -166,9 +169,7 @@ Here's where my heads at and where I want to take this
 - [x] ~~Mapping of `[NeoRelationshipEntity]` attribute~~
 - [x] ~~Mapping of Cypher Type List (simple)~~
 - [x] ~~Cypher Temporal to CLR Conversions~~
-- [ ] Add `[NeoResult]` attribute to map non-node record responses
 - [x] ~~More configuration options~~
-- [ ] Fix all the bugs I haven't found yet... Or at least the worst ones
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

@@ -73,16 +73,28 @@ namespace Graphr.Neo4j.Graphr
             return TranslatorService.Translate<T>(records);
         }
 
-        public async Task WriteAsync(string query, CancellationToken cancellationToken) =>
+        public async Task<List<IRecord>> ReadAsync(string query, CancellationToken cancellationToken) =>
+            await _queryExecutor.ReadAsync(query, cancellationToken);
+
+        public async Task<List<IRecord>> ReadAsync(string query, object parameters, CancellationToken cancellationToken) =>
+            await _queryExecutor.ReadAsync(query, parameters, cancellationToken);
+
+        public async Task<List<IRecord>> ReadAsync(string query, IDictionary<string, object> parameters, CancellationToken cancellationToken) =>
+            await _queryExecutor.ReadAsync(query, parameters, cancellationToken);
+
+        public async Task<List<IRecord>> ReadAsync(Query query, CancellationToken cancellationToken) =>
+            await _queryExecutor.ReadAsync(query, cancellationToken);
+
+        public async Task<List<IRecord>> WriteAsync(string query, CancellationToken cancellationToken) =>
             await _queryExecutor.WriteAsync(query, cancellationToken);
 
-        public async Task WriteAsync(string query, object parameters, CancellationToken cancellationToken) =>
+        public async Task<List<IRecord>> WriteAsync(string query, object parameters, CancellationToken cancellationToken) =>
             await _queryExecutor.WriteAsync(query, parameters, cancellationToken);
 
-        public async Task WriteAsync(string query, Dictionary<string, object> parameters, CancellationToken cancellationToken) =>
+        public async Task<List<IRecord>> WriteAsync(string query, IDictionary<string, object> parameters, CancellationToken cancellationToken) =>
             await _queryExecutor.WriteAsync(query, parameters, cancellationToken);
 
-        public async Task WriteAsync(Query query, CancellationToken cancellationToken) =>
+        public async Task<List<IRecord>> WriteAsync(Query query, CancellationToken cancellationToken) =>
             await _queryExecutor.WriteAsync(query, cancellationToken);
 
     }

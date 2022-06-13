@@ -17,5 +17,8 @@ namespace Graphr.Neo4j.Configuration
         public int? ConnectionTimeoutMs { get; set; } = 30_000;
         public long? ConnectionIdleTimeoutMs { get; set; } = -1;
         public long? MaxConnectionLifetimeMs { get; set; } = 3_600_000;
+        public bool IncludeHealthChecks { get; set; } = true;
+        public string HealthCheckName { get; set; } = "neo4j-health-check";
+        public bool VerifyConnectivity { get; set; } = false;
     }
 }
