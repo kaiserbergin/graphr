@@ -2,11 +2,16 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Graphr.Neo4j.Configuration;
+using Graphr.Neo4j.Driver;
 using Graphr.Neo4j.Graphr;
 using Graphr.Neo4j.QueryExecution;
 using Graphr.Tests.Fixtures;
 using Graphr.Tests.Graphr.Models;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Neo4j.Driver;
 using Xunit;
 
@@ -15,6 +20,7 @@ namespace Graphr.Tests.Graphr
     [Collection("ServiceProvider")]
     public class GraphrTests : IDisposable
     {
+        private readonly ServiceProviderFixture _serviceProviderFixture;
         private readonly INeoGraphr _neoGraphr;
         
         private readonly string _nonParameterizedQuery;
@@ -29,8 +35,13 @@ namespace Graphr.Tests.Graphr
         private readonly string _retrieveNodeForTypeTestingQuery;
         private readonly string _deleteNodeForTypeTestingQuery;
 
+        private const string DATABASE_NAME = "neo4j";
+        private const string TEST_MOVIE_TITLE = "Test Movie";
+
         public GraphrTests(ServiceProviderFixture serviceProviderFixture)
         {
+            _serviceProviderFixture = serviceProviderFixture;
+            
             _neoGraphr = serviceProviderFixture
                 .ServiceProvider
                 .GetRequiredService<INeoGraphr>();
@@ -328,6 +339,66 @@ namespace Graphr.Tests.Graphr
             // Assert
             Assert.Single(movies);
             Assert.Equal("Test Movie", movies.Single().Title);
+        }
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async void ReadAndWriteAsync_WithDatabaseNameFromSettings_ExecutesProperly()
+        {
+            // Arrange
+            var serviceProvider = _serviceProviderFixture.ServiceProvider;
+
+            var driverProvider = serviceProvider.GetRequiredService<IDriverProvider>();
+            var settings = serviceProvider.GetRequiredService<IOptions<NeoDriverConfigurationSettings>>();
+
+            settings.Value.DatabaseName = DATABASE_NAME;
+
+            var queryExecutor = new QueryExecutor(driverProvider, settings.Value);
+            var neoGraphr = new NeoGraphr(queryExecutor);
+
+            var parameters = new { title = TEST_MOVIE_TITLE };
+            var query = new Query(_createMovieParameterizedQuery, parameters);
+            
+            // Act
+            await neoGraphr.WriteAsync(query);
+            var movies = await neoGraphr.ReadAsAsync<Movie>(_getCreatedMovieQuery);
+
+            // Assert
+            Assert.Single(movies);
+            Assert.Equal(TEST_MOVIE_TITLE, movies.Single().Title); 
+        }
+        
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async void ReadAndWriteAsync_WithSessionConfigBuilder_ExecutesProperly()
+        {
+            // Arrange
+            var parameters = new { title = TEST_MOVIE_TITLE };
+            var query = new Query(_createMovieParameterizedQuery, parameters);
+
+            var configurationAction = new Action<SessionConfigBuilder>(config => config.WithDatabase(DATABASE_NAME));
+            
+            // Act
+            await _neoGraphr.WriteAsync(query, configurationAction);
+            var movies = await _neoGraphr.ReadAsAsync<Movie>(_getCreatedMovieQuery, configurationAction);
+
+            // Assert
+            Assert.Single(movies);
+            Assert.Equal(TEST_MOVIE_TITLE, movies.Single().Title); 
+        }
+        
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async void ReadAsync_WithImproperSessionConfigBuilder_ThrowsException()
+        {
+            // Arrange
+            var configurationAction = new Action<SessionConfigBuilder>(config => config.WithDatabase("break"));
+            
+            // Act
+            Func<Task<List<IRecord>>> act = async () => await _neoGraphr.WriteAsync(_createMovieQuery, configurationAction);
+
+            // Assert
+            await act.Should().ThrowAsync<FatalDiscoveryException>();
         }
     }
 }

@@ -159,6 +159,7 @@ public class Neo4jRocks
 Here's where my heads at and where I want to take this
 - [ ] Split up child nugets so you don't get DI stuff in the base package
 - [ ] Add `[NeoResult]` attribute to map non-node record responses
+- [x] ~~Session configuration & database name support~~
 - [x] ~~Healthchecks~~
 - [x] ~~Driver Best Practices~~
 - [x] ~~Support for Labels~~

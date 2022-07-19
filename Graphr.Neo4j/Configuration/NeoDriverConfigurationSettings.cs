@@ -8,6 +8,7 @@ namespace Graphr.Neo4j.Configuration
         public string? Url { get; set; }
         public string? Username { get; set; }
         public string? Password { get; set; }
+        public string? DatabaseName { get; set; }
         public bool IsDebugLoggingEnabled { get; set; }
         public bool IsTraceLoggingEnabled { get; set; }
         public new string? EncryptionLevel { get; set; }
