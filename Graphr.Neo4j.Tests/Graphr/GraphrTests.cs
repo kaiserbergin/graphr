@@ -379,8 +379,12 @@ namespace Graphr.Tests.Graphr
             var configurationAction = new Action<SessionConfigBuilder>(config => config.WithDatabase(DATABASE_NAME));
             
             // Act
-            await _neoGraphr.WriteAsync(query, configurationAction);
-            var movies = await _neoGraphr.ReadAsAsync<Movie>(_getCreatedMovieQuery, configurationAction);
+            await _neoGraphr
+                .WithSessionConfig(configurationAction)
+                .WriteAsync(query);
+            var movies = await _neoGraphr
+                .WithSessionConfig(configurationAction)
+                .ReadAsAsync<Movie>(_getCreatedMovieQuery);
 
             // Assert
             Assert.Single(movies);
@@ -395,7 +399,9 @@ namespace Graphr.Tests.Graphr
             var configurationAction = new Action<SessionConfigBuilder>(config => config.WithDatabase("break"));
             
             // Act
-            Func<Task<List<IRecord>>> act = async () => await _neoGraphr.WriteAsync(_createMovieQuery, configurationAction);
+            Func<Task<List<IRecord>>> act = async () => await _neoGraphr
+                .WithSessionConfig(configurationAction)
+                .WriteAsync(_createMovieQuery);
 
             // Assert
             await act.Should().ThrowAsync<FatalDiscoveryException>();

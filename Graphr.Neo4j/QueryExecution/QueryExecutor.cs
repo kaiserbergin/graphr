@@ -10,34 +10,37 @@ namespace Graphr.Neo4j.QueryExecution
 {
     internal class QueryExecutor : IQueryExecutor
     {
+        private readonly IDriverProvider _driverProvider;
         private readonly IDriver _driver;
         private readonly NeoDriverConfigurationSettings _settings;
         private readonly TimeSpan _timeout;
+        
+        public Action<SessionConfigBuilder> SessionConfigBuilder { get; set; }
 
         public QueryExecutor(IDriverProvider driverProvider, NeoDriverConfigurationSettings neoDriverConfigurationSettings)
         {
-            _driver = driverProvider.Driver ?? throw new ArgumentNullException(nameof(driverProvider));
+            _driverProvider = driverProvider ?? throw new ArgumentNullException(nameof(driverProvider));
+            _driver = driverProvider.Driver ?? throw new ArgumentNullException(nameof(driverProvider.Driver));
             _settings = neoDriverConfigurationSettings ?? throw new ArgumentNullException(nameof(neoDriverConfigurationSettings));
             _timeout = TimeSpan.FromMilliseconds(neoDriverConfigurationSettings.QueryTimeoutInMs!.Value);
+
+            if (neoDriverConfigurationSettings.DatabaseName is not null)
+                SessionConfigBuilder = config => config.WithDatabase(neoDriverConfigurationSettings.DatabaseName);
+            else
+                SessionConfigBuilder = _ => { };
         }
 
-        /// <summary>
-        /// Reads records from neo4j asynchronously
-        /// </summary>
-        /// <param name="runAsyncCommand"></param>
-        /// <param name="sessionConfigurationAction"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        public IQueryExecutor Clone() => new QueryExecutor(_driverProvider, _settings);
+
         private async Task<List<IRecord>> ReadAsync(
             Func<IAsyncTransaction, Task<IResultCursor>> runAsyncCommand,
-            Action<SessionConfigBuilder>? sessionConfigurationAction = null,
             CancellationToken cancellationToken = default
         )
         {
             if (_settings.VerifyConnectivity)
                 await _driver.VerifyConnectivityAsync();
 
-            await using var session = _driver.AsyncSession(sessionConfigurationAction ?? GetSessionConfiguration());
+            await using var session = _driver.AsyncSession(SessionConfigBuilder);
 
             var records = new List<IRecord>();
 
@@ -66,14 +69,13 @@ namespace Graphr.Neo4j.QueryExecution
 
         private async Task<List<IRecord>> WriteAsync(
             Func<IAsyncTransaction, Task<IResultCursor>> runAsyncCommand,
-            Action<SessionConfigBuilder>? sessionConfigurationAction = null,
             CancellationToken cancellationToken = default
         )
         {
             if (_settings.VerifyConnectivity)
                 await _driver.VerifyConnectivityAsync();
 
-            await using var session = _driver.AsyncSession(sessionConfigurationAction ?? GetSessionConfiguration());
+            await using var session = _driver.AsyncSession(SessionConfigBuilder);
 
             var records = new List<IRecord>();
 
@@ -100,104 +102,88 @@ namespace Graphr.Neo4j.QueryExecution
             return records;
         }
 
-        private Action<SessionConfigBuilder> GetSessionConfiguration()
-        {
-            if (_settings.DatabaseName is not null)
-                return builder => builder.WithDatabase(_settings.DatabaseName);
-
-            return _ => { };
-        }
-
         public async Task<List<IRecord>> ReadAsync(
             string query,
-            Action<SessionConfigBuilder>? sessionConfigurationAction = null,
             CancellationToken cancellationToken = default
         )
         {
             async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query);
 
-            return await ReadAsync(RunAsyncCommand, sessionConfigurationAction, cancellationToken);
+            return await ReadAsync(RunAsyncCommand, cancellationToken);
         }
 
         public async Task<List<IRecord>> ReadAsync(
             string query, 
             object parameters, 
-            Action<SessionConfigBuilder>? sessionConfigurationAction = null,
             CancellationToken cancellationToken = default
         )
         {
             async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query, parameters);
 
-            return await ReadAsync(RunAsyncCommand, sessionConfigurationAction, cancellationToken);
+            return await ReadAsync(RunAsyncCommand, cancellationToken);
         }
 
         public async Task<List<IRecord>> ReadAsync(
             string query, 
             IDictionary<string, object> parameters,
-            Action<SessionConfigBuilder>? sessionConfigurationAction = null,
             CancellationToken cancellationToken = default
         )
         {
             async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query, parameters);
 
-            return await ReadAsync(RunAsyncCommand, sessionConfigurationAction, cancellationToken);
+            return await ReadAsync(RunAsyncCommand, cancellationToken);
         }
 
         public async Task<List<IRecord>> ReadAsync(
             Query query, 
-            Action<SessionConfigBuilder>? sessionConfigurationAction = null,
             CancellationToken cancellationToken = default
         )
         {
             async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query);
 
-            return await ReadAsync(RunAsyncCommand, sessionConfigurationAction, cancellationToken);
+            return await ReadAsync(RunAsyncCommand, cancellationToken);
         }
 
         public async Task<List<IRecord>> WriteAsync(
             string query, 
-            Action<SessionConfigBuilder>? sessionConfigurationAction = null,
             CancellationToken cancellationToken = default
         )
         {
             async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query);
 
-            return await WriteAsync(RunAsyncCommand, sessionConfigurationAction, cancellationToken);
+            return await WriteAsync(RunAsyncCommand, cancellationToken);
         }
 
         public async Task<List<IRecord>> WriteAsync(
             string query, 
             object parameters, 
-            Action<SessionConfigBuilder>? sessionConfigurationAction = null,
             CancellationToken cancellationToken = default
         )
         {
             async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query, parameters);
 
-            return await WriteAsync(RunAsyncCommand, sessionConfigurationAction, cancellationToken);
+            return await WriteAsync(RunAsyncCommand, cancellationToken);
         }
 
         public async Task<List<IRecord>> WriteAsync(
             string query, 
             IDictionary<string, object> parameters,
-            Action<SessionConfigBuilder>? sessionConfigurationAction = null,
             CancellationToken cancellationToken = default
         )
         {
             async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query, parameters);
 
-            return await WriteAsync(RunAsyncCommand, sessionConfigurationAction, cancellationToken);
+            return await WriteAsync(RunAsyncCommand, cancellationToken);
         }
 
         public async Task<List<IRecord>> WriteAsync(
             Query query, 
-            Action<SessionConfigBuilder>? sessionConfigurationAction = null,
             CancellationToken cancellationToken = default
         )
         {
             async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query);
 
-            return await WriteAsync(RunAsyncCommand, sessionConfigurationAction, cancellationToken);
+            return await WriteAsync(RunAsyncCommand, cancellationToken);
         }
     }
 }
