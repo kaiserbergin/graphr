@@ -5,7 +5,7 @@ using Neo4jLogger = Neo4j.Driver.ILogger;
 
 namespace Graphr.Neo4j.Driver
 {
-    public class DriverProvider : IDisposable, IDriverProvider
+    public sealed class DriverProvider : IDisposable, IDriverProvider
     {
         private bool _disposed = false;
         public IDriver Driver { get; }
@@ -51,7 +51,7 @@ namespace Graphr.Neo4j.Driver
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        protected void Dispose(bool disposing)
         {
             if (_disposed)
                 return;

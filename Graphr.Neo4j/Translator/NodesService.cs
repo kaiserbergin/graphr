@@ -7,7 +7,7 @@ using Neo4j.Driver;
 
 namespace Graphr.Neo4j.Translator
 {
-    public static class NodesService
+    internal static class NodesService
     {
         internal static INode GetRootNode(IRecord record, Type targetType)
         {

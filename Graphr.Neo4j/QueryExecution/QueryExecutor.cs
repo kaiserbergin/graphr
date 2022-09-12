@@ -8,7 +8,7 @@ using Neo4j.Driver;
 
 namespace Graphr.Neo4j.QueryExecution
 {
-    internal class QueryExecutor : IQueryExecutor
+    public sealed class QueryExecutor : IQueryExecutor
     {
         private readonly IDriverProvider _driverProvider;
         private readonly IDriver _driver;

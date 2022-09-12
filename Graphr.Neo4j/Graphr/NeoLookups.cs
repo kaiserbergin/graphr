@@ -4,7 +4,7 @@ using Neo4j.Driver;
 
 namespace Graphr.Neo4j.Graphr
 {
-    public class NeoLookups
+    internal sealed class NeoLookups
     {
         public readonly Dictionary<long, INode> NodesById;
         public readonly ILookup<string, IRelationship> RelationshipLookup;

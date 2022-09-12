@@ -18,7 +18,7 @@ using Xunit;
 namespace Graphr.Tests.Graphr
 {
     [Collection("ServiceProvider")]
-    public class GraphrTests : IDisposable
+    public class GraphrTests : IAsyncLifetime
     {
         private readonly ServiceProviderFixture _serviceProviderFixture;
         private readonly INeoGraphr _neoGraphr;
@@ -34,6 +34,8 @@ namespace Graphr.Tests.Graphr
         private readonly string _createNodeForTypeTestingQuery;
         private readonly string _retrieveNodeForTypeTestingQuery;
         private readonly string _deleteNodeForTypeTestingQuery;
+        private readonly string _initiateGraphQuery;
+        private readonly string _cleanupGraphQuery;
 
         private const string DATABASE_NAME = "neo4j";
         private const string TEST_MOVIE_TITLE = "Test Movie";
@@ -57,12 +59,13 @@ namespace Graphr.Tests.Graphr
             _createNodeForTypeTestingQuery = File.ReadAllText(@"Queries/create-node-for-type-testing.cypher");
             _retrieveNodeForTypeTestingQuery = File.ReadAllText(@"Queries/retrieve-type-test-node.cypher");
             _deleteNodeForTypeTestingQuery = File.ReadAllText(@"Queries/delete-node-for-type-testing.cypher");
+            _initiateGraphQuery = File.ReadAllText(@"Queries/play-movies.cypher");
+            _cleanupGraphQuery = File.ReadAllText(@"Queries/cleanup.cypher");
         }
 
-        public void Dispose()
-        {
-            _neoGraphr.WriteAsync(_deleteCreatedMovieQuery).GetAwaiter().GetResult();
-        }
+        public async Task InitializeAsync() => await _neoGraphr.WriteAsync(_initiateGraphQuery);
+
+        public async Task DisposeAsync() => await _neoGraphr.WriteAsync(_cleanupGraphQuery);
 
         [Fact]
         [Trait("Category", "Integration")]

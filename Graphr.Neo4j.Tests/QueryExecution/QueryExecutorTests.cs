@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Graphr.Neo4j.QueryExecution;
 using Graphr.Tests.Fixtures;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,11 +10,14 @@ using Xunit;
 namespace Graphr.Tests.QueryExecution
 {
     [Collection("ServiceProvider")]
-    public class QueryExecutorTests
+    public class QueryExecutorTests : IAsyncLifetime
     {
         private readonly IQueryExecutor _queryExecutor;
         private readonly string _nonParameterizedQuery;
         private readonly string _parameterizedQuery;
+        private readonly string _deleteNodeForTypeTestingQuery;
+        private readonly string _initiateGraphQuery;
+        private readonly string _cleanupGraphQuery;
 
         public QueryExecutorTests(ServiceProviderFixture serviceProviderFixture)
         {
@@ -24,7 +27,14 @@ namespace Graphr.Tests.QueryExecution
 
             _nonParameterizedQuery = File.ReadAllText(@"Queries/one-to-one.cypher");
             _parameterizedQuery = File.ReadAllText(@"Queries/parameterized-query.cypher");
+            _deleteNodeForTypeTestingQuery = File.ReadAllText(@"Queries/delete-node-for-type-testing.cypher");
+            _initiateGraphQuery = File.ReadAllText(@"Queries/play-movies.cypher");
+            _cleanupGraphQuery = File.ReadAllText(@"Queries/cleanup.cypher");
         }
+
+        public async Task InitializeAsync() => await _queryExecutor.WriteAsync(_initiateGraphQuery);
+
+        public async Task DisposeAsync() => await _queryExecutor.WriteAsync(_cleanupGraphQuery);
 
         [Fact]
         [Trait("Category", "Integration")]

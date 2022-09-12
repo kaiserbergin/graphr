@@ -6,7 +6,7 @@ using Neo4j.Driver;
 
 namespace Graphr.Neo4j.QueryExecution
 {
-    internal class QueryExecutorWithConfig : IQueryExecutor
+    public sealed class QueryExecutorWithConfig : IQueryExecutor
     {
         private readonly IQueryExecutor _queryExecutor;
 
