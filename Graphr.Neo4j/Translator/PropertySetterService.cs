@@ -10,18 +10,22 @@ namespace Graphr.Neo4j.Translator
 {
     internal static class PropertySetterService
     {
-        internal static void SetPropertyValue(PropertyInfo propertyInfo, object target, object neoProp)
+        internal static void SetPropertyValue(PropertyInfo targetPropertyInfo, object targetClass, object source)
         {
-            var convertedNeoProp = ConvertToClrType(propertyInfo.PropertyType, neoProp);
-            propertyInfo.SetValue(target, convertedNeoProp);
+            var convertedNeoProp = ConvertToClrType(targetPropertyInfo.PropertyType, source);
+            targetPropertyInfo.SetValue(targetClass, convertedNeoProp);
         }
 
         internal static object? ConvertToClrType(Type type, object? neoProp)
         {
             if (type.IsArray)
-                return EnumerableService.CreateArrayFromNeoProp(neoProp, type.GetElementType()!);
+                return EnumerableService.CreateArrayFromObject(neoProp, type.GetElementType()!);
+
+            if (typeof(IDictionary).IsAssignableFrom(type))
+                return DictionaryService.GetGenericDictionary(neoProp, type);
+                
             if (EnumerableService.IsGenericIEnumerable(type) && EnumerableService.CanAssignToIEnumerable(neoProp))
-                return EnumerableService.CreateGenericIEnumerableFromNeoProp(type, neoProp);
+                return EnumerableService.CreateGenericIEnumerableFromObject(type, neoProp);
 
             if (type == typeof(DateTime))
                 return neoProp.As<DateTime>();

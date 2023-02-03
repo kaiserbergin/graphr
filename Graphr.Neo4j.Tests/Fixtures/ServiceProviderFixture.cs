@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using Graphr.Neo4j.Configuration;
 using Graphr.Neo4j.DependencyInjection;
@@ -14,46 +16,58 @@ namespace Graphr.Tests.Fixtures
 {
     public sealed class ServiceProviderFixture : IAsyncLifetime
     {
-        internal readonly TestcontainersContainer _neo4j =
-            new TestcontainersBuilder<TestcontainersContainer>()
-                .WithImage("neo4j:latest")
-                .WithEnvironment("NEO4J_USERNAME", "neo4j")
-                .WithEnvironment("NEO4J_PASSWORD", "connect")
-                .WithEnvironment("NEO4J_AUTH", "neo4j/connect")
-                .WithEnvironment("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
-                .WithEnvironment("NEO4JLABS_PLUGINS", "[\"apoc\"]")
-                .WithPortBinding(7474, true)
-                .WithPortBinding(7473, true)
-                .WithPortBinding(7687, true)
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(7687))
+        internal readonly Neo4jTestcontainer _neo4jContainer =
+            new TestcontainersBuilder<Neo4jTestcontainer>()
+                .WithDatabase(new Neo4jTestcontainerConfiguration { Password = "connect" })
                 .Build();
 
         internal IServiceProvider ServiceProvider;
 
         public async Task InitializeAsync()
         {
-            await _neo4j.StartAsync();
-            
+            if (!IsLocalNeoInstance())
+                await _neo4jContainer.StartAsync();
+
             var serviceCollection = new ServiceCollection();
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.integrationtests.json", false)
-                .AddInMemoryCollection(new[]
-                {
-                    new KeyValuePair<string, string>(
-                        $"{nameof(NeoDriverConfigurationSettings)}:{nameof(NeoDriverConfigurationSettings.Url)}",
-                        $"bolt://localhost:{_neo4j.GetMappedPublicPort(7687)}")
-                })
-                .AddEnvironmentVariables()
-                .Build();
+                .AddEnvironmentVariables();
+
+            if (!IsLocalNeoInstance())
+                configuration
+                    .AddInMemoryCollection(new[]
+                    {
+                        new KeyValuePair<string, string>(
+                            $"{nameof(NeoDriverConfigurationSettings)}:{nameof(NeoDriverConfigurationSettings.Url)}",
+                            _neo4jContainer.ConnectionString)
+                    });
 
             serviceCollection
                 .AddLogging()
-                .AddNeoGraphr(configuration);
+                .AddNeoGraphr(configuration.Build());
 
             ServiceProvider = serviceCollection.BuildServiceProvider();
         }
 
-        public async Task DisposeAsync() =>
-            await _neo4j.StopAsync();
+        private bool IsLocalNeoInstance()
+        {
+            using var tcpClient = new TcpClient();
+
+            try
+            {
+                tcpClient.Connect("127.0.0.1", 7687);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task DisposeAsync()
+        {
+            if (!IsLocalNeoInstance())
+                await _neo4jContainer.StopAsync();
+        }
     }
 }
