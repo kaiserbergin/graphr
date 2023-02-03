@@ -12,7 +12,7 @@ you of understanding what the heck you're doing.
 Simply install via nuget in your favorite IDE (it's Rider), or use the command line.
 
 ```powershell
-Install-Package Graphr.Neo4j -Version 0.1.3
+Install-Package Graphr.Neo4j -Version 0.1.4
 ```
 
 ## Usage
@@ -154,11 +154,109 @@ public class Neo4jRocks
 - This library maps relationships for a node only once per DFS chain to avoid circular
   references. The node will still be mapped with it's properties each time, but
   relationships mapped _only once_.
+
+## Advanced Stuff
+
+### Projections
+Look, you return nodes, you return relationships, but sometimes you need to project things.
+I get it. Bad news, when you project a node, you lose all the context of the node itself
+on the return query. Good news, if you follow these steps, you can still get projected data
+alongside you nodes and relationships.
+
+Step one, you'll need to write a query that returns the nodes, relationships, AND (as in
+in addition to) your projection(s). By default, you can apply a projection to each itteration
+or an entity, which ends up being a nice lazy way to do top level projections, since you
+only have one of those if you followed directions. Alternatively, you can give some sort of
+lookup value to your projection that points to a property on an entity you want to slap it on.
+
+In the example below, we're gonna lazily slap the count of all of Keanu Reeve's movies on
+the Actor, and then get a projection of staff counts that have a tie to the Movie nodes' title
+property.
+
+```cypher
+MATCH (p:Person {name: 'Keanu Reeves'})-[actedIn:ACTED_IN]->(m:Movie)
+OPTIONAL MATCH (m)<-[:ACTED_IN]-(p2:Person)
+OPTIONAL MATCH (m)<-[:DIRECTED]-(d:Person)
+WITH 
+  p AS anchor, 
+  actedIn, 
+  m AS movie, 
+  { 
+    gKey: m.title,  // used to link back to the related movie
+    actorCount: count(DISTINCT p2{.*}),
+    directorCount: count(DISTINCT d{.*}), 
+    staffCount: count(DISTINCT p2{.*}) + count(DISTINCT d{.*})
+  } AS staff
+RETURN 
+  anchor, 
+  collect(actedIn) AS actingRels, 
+  collect(movie) AS movies, 
+  collect(staff) AS staff,
+  count(movie) as movieCount
+```
+
+Next, you can set up your entities like below (no, I'm not testing any of this, but if you look
+in the tests directory, you can see a much more convoluted example that does more things).
+
+```csharp
+[NeoNode("Person")]
+public class ActorWithMoviesAndProjection
+{
+    [NeoProperty("name")] 
+    public string Name { get; set; }
+   
+    [NeoProperty("born")] 
+    public long Born { get; set; }
+    
+    [NeoRelationship(type: "ACTED_IN", direction: RelationshipDirection.Outgoing)]
+    public IEnumerable<MovieWithProjections> Movie { get; set; }
+    
+    // NEW PROJECTION HOTNESS, NO MATCH KEY REQUIRED!
+    [NeoProjection(projectionName: "movieCount")]
+    public long MovieCount { get; set; }
+}
+
+[NeoNode("Movie")]
+public class MovieWithProjections
+{
+    [NeoProperty("tagline")]
+    public string Description { get; set; }
+    
+    [NeoProperty("title")]
+    public string Title { get; set; }
+
+    [NeoProperty("released")]
+    public long Released { get; set; }
+    
+    // NEW PROJECTION HOTNESS! But you need to declare what the key is for the projection
+    //  and what property of the related class to match on.
+    [NeoProjection(projectionName: "staff", projectionKey: "gKey", matchOn: nameof(Movie.Title))]
+    public StaffProjection Staff { get; set; }
+}
+
+// IF YOU DON'T MARK A CUSTOM PROJECTION ENTITY CLASS, YOU'RE GONNA HAVE A BAD TIME
+[NeoProjectedEntity]
+public class StaffProjection
+{
+    [NeoProperty("actorCount")]
+    public long ActorCount { get; set; } 
+    
+    [NeoProperty("directorCount")]
+    public long DirectorCount { get; set; } 
+    
+    [NeoProperty("staffCount")]
+    public long StaffCount { get; set; } 
+}
+```
+
+#### But can I put projections in projections so I can project while I 30-year-old meme?
+Yes, just check out the `ReadAsync_WithMapProjections_SerializesSuccessfully` in 
+`Graphr.Neo4j.Tests/Graphr/GraphrTests.cs` and the related entity classes.
   
 ## Road Map
 Here's where my heads at and where I want to take this
 - [ ] Split up child nugets so you don't get DI stuff in the base package
-- [ ] Add `[NeoResult]` attribute to map non-node record responses
+- [X] ~~Add `[NeoResult]` attribute to map non-node record responses~~
 - [x] ~~Session configuration & database name support~~
 - [x] ~~Healthchecks~~
 - [x] ~~Driver Best Practices~~
