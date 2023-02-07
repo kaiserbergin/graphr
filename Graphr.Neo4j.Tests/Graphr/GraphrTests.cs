@@ -13,10 +13,12 @@ using Graphr.Tests.Graphr.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Neo4j.Driver;
+using VerifyXunit;
 using Xunit;
 
 namespace Graphr.Tests.Graphr
 {
+    [UsesVerify]
     [Collection("ServiceProvider")]
     public class GraphrTests : IAsyncLifetime
     {
@@ -36,6 +38,7 @@ namespace Graphr.Tests.Graphr
         private readonly string _deleteNodeForTypeTestingQuery;
         private readonly string _initiateGraphQuery;
         private readonly string _cleanupGraphQuery;
+        private readonly string _actorToMovieWithProjectionsQuery;
 
         private const string DATABASE_NAME = "neo4j";
         private const string TEST_MOVIE_TITLE = "Test Movie";
@@ -52,6 +55,7 @@ namespace Graphr.Tests.Graphr
             _parameterizedQuery = File.ReadAllText(@"Queries/parameterized-query.cypher");
             _oneToManyQuery = File.ReadAllText(@"Queries/one-to-many.cypher");
             _actorToMovieToReviewerToFollowerQuery = File.ReadAllText(@"Queries/actor-movie-reviewer-follower.cypher");
+            _actorToMovieWithProjectionsQuery = File.ReadAllText(@"Queries/map-projection.cypher");
             _createMovieQuery = File.ReadAllText(@"Queries/create-movie.cypher");
             _createMovieParameterizedQuery = File.ReadAllText(@"Queries/create-movie-parameterized.cypher");
             _deleteCreatedMovieQuery = File.ReadAllText(@"Queries/delete-movie.cypher");
@@ -63,7 +67,11 @@ namespace Graphr.Tests.Graphr
             _cleanupGraphQuery = File.ReadAllText(@"Queries/cleanup.cypher");
         }
 
-        public async Task InitializeAsync() => await _neoGraphr.WriteAsync(_initiateGraphQuery);
+        public async Task InitializeAsync()
+        {
+            await _neoGraphr.WriteAsync(_cleanupGraphQuery);
+            await _neoGraphr.WriteAsync(_initiateGraphQuery);
+        }
 
         public async Task DisposeAsync() => await _neoGraphr.WriteAsync(_cleanupGraphQuery);
 
@@ -408,6 +416,40 @@ namespace Graphr.Tests.Graphr
 
             // Assert
             await act.Should().ThrowAsync<FatalDiscoveryException>();
+        }
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async Task ReadAsync_WithMapProjections_SerializesSuccessfully()
+        {
+            // Act
+            var actorWithMovieProjection = await _neoGraphr.ReadAsAsync<ActorWithMoviesAndProjection>(_actorToMovieWithProjectionsQuery);
+            
+            // Assert
+            var keanu = actorWithMovieProjection.First();
+
+            keanu.Name.Should().Be("Keanu Reeves");
+            keanu.Born.Should().Be(1964);
+            keanu.Feels.Feels.Should().Be("so many");
+            keanu.Labels.Single().Should().Be("Person");
+            keanu.Surprise.Should().Be(1);
+            
+            keanu.Dictionary.Count().Should().Be(2);
+            keanu.Dictionary["one"].Should().Be("two");
+            
+            keanu.ObjectionableDictionary.Count.Should().Be(3);
+            keanu.ObjectionableDictionary["two"].Should().Be(2);
+            
+            keanu.Movie.Count().Should().Be(7);
+
+            var movie = keanu.Movie.First(m => m.Title == "Something's Gotta Give");
+
+            movie.Description.Should().BeNull();
+            movie.Released.Should().Be(2003);
+            movie.Staff.Actors.Count().Should().Be(3);
+            movie.Staff.Directors.Single().Name.Should().Be("Nancy Meyers");
+            movie.Staff.Directors.Single().Born.Should().Be(1949);
+            movie.Staff.Nested.Example.Should().Be("data");
         }
     }
 }

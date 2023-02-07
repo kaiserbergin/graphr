@@ -17,8 +17,9 @@ namespace Graphr.Neo4j.Translator
             {
                 var neoLookups = new NeoLookups(record);
                 var rootNode = NodesService.GetRootNode(record, targetType);
+                var projections = ProjectionRetrievalService.GetProjections(record);
 
-                var translatedNode = NodesService.TranslateNode(rootNode, targetType, new HashSet<long>(), neoLookups);
+                var translatedNode = NodesService.TranslateNode(rootNode, targetType, new HashSet<long>(), neoLookups, projections);
 
                 result.Add(translatedNode);
             }

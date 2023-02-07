@@ -16,11 +16,24 @@ namespace Graphr.Neo4j.Translator
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type relationshipTargetType,
             HashSet<long> traversedIds,
-            NeoLookups neoLookups)
+            NeoLookups neoLookups,
+            Dictionary<string, object> projections)
         {
             return IsRelationshipEntity(relationshipTargetType)
-                ? TranslateRelationshipEntityBasedTargets(sourceNode, neoRelationshipAttribute, relationshipTargetType, traversedIds, neoLookups)
-                : TranslateTargetNodes(sourceNode, neoRelationshipAttribute, relationshipTargetType, traversedIds, neoLookups);
+                ? TranslateRelationshipEntityBasedTargets(
+                    sourceNode, 
+                    neoRelationshipAttribute, 
+                    relationshipTargetType, 
+                    traversedIds, 
+                    neoLookups,
+                    projections)
+                : TranslateTargetNodes(
+                    sourceNode, 
+                    neoRelationshipAttribute, 
+                    relationshipTargetType, 
+                    traversedIds, 
+                    neoLookups,
+                    projections);
         }
 
         private static bool IsRelationshipEntity(Type relationshipTargetType) =>
@@ -31,7 +44,8 @@ namespace Graphr.Neo4j.Translator
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type relationshipEntityType,
             HashSet<long> traversedIds,
-            NeoLookups neoLookups)
+            NeoLookups neoLookups,
+            Dictionary<string, object> projections)
         {
             var genericListType = typeof(List<>).MakeGenericType(relationshipEntityType) ?? throw new NullReferenceException($@"Could not create generic {relationshipEntityType} typed list from.");
             var genericRelationshipEntityList = (IList) Activator.CreateInstance(genericListType)!;
@@ -39,7 +53,13 @@ namespace Graphr.Neo4j.Translator
             var targetNodePropertyInfo = GetTargetNodePropertyInfoFromRelationshipEntity(relationshipEntityType);
             var targetNodeType = targetNodePropertyInfo.PropertyType;
 
-            var enumerator = GetTranslatedTargetNodeAndRelationship(sourceNode, neoRelationshipAttribute, targetNodeType, traversedIds, neoLookups);
+            var enumerator = GetTranslatedTargetNodeAndRelationship(
+                sourceNode, 
+                neoRelationshipAttribute, 
+                targetNodeType, 
+                traversedIds, 
+                neoLookups,
+                projections);
 
             foreach (var (targetNode, neoRelationship) in enumerator)
             {
@@ -81,7 +101,8 @@ namespace Graphr.Neo4j.Translator
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type targetNodeType,
             HashSet<long> traversedIds,
-            NeoLookups neoLookups)
+            NeoLookups neoLookups,
+            Dictionary<string, object> projections)
         {
             var targetTypeLabels = GetTargetTypeLabels(targetNodeType);
             var relationshipsOfTargetType = neoLookups.RelationshipLookup[neoRelationshipAttribute.Type];
@@ -90,7 +111,7 @@ namespace Graphr.Neo4j.Translator
             {
                 if (IsTranslatableRelationship(sourceNode, neoRelationshipAttribute, relationship, targetTypeLabels, neoLookups, out var targetNode))
                 {
-                    yield return (NodesService.TranslateNode(targetNode!, targetNodeType, traversedIds, neoLookups), relationship);
+                    yield return (NodesService.TranslateNode(targetNode!, targetNodeType, traversedIds, neoLookups, projections), relationship);
                 }
             }
         }
@@ -100,12 +121,19 @@ namespace Graphr.Neo4j.Translator
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type targetNodeType,
             HashSet<long> traversedIds,
-            NeoLookups neoLookups)
+            NeoLookups neoLookups,
+            Dictionary<string, object> projections)
         {
             var genericListType = typeof(List<>).MakeGenericType(targetNodeType) ?? throw new NullReferenceException($@"Could not create generic {targetNodeType} typed list from.");
             var targetNodes = (IList) Activator.CreateInstance(genericListType)!;
 
-            var enumerator = GetTranslatedTargetNodeAndRelationship(sourceNode, neoRelationshipAttribute, targetNodeType, traversedIds, neoLookups);
+            var enumerator = GetTranslatedTargetNodeAndRelationship(
+                sourceNode, 
+                neoRelationshipAttribute, 
+                targetNodeType, 
+                traversedIds, 
+                neoLookups,
+                projections);
 
             foreach (var (node, _) in enumerator)
             {
@@ -158,7 +186,8 @@ namespace Graphr.Neo4j.Translator
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type targetNodeType,
             HashSet<long> traversedIds,
-            NeoLookups neoLookups)
+            NeoLookups neoLookups,
+            Dictionary<string, object> projections)
         {
             var targetTypeLabels = GetTargetTypeLabels(targetNodeType);
             INode? nodeToTranslate = null;
@@ -179,7 +208,12 @@ namespace Graphr.Neo4j.Translator
             if (nodeToTranslate == null)
                 throw new ArgumentNullException($"No translatable realtionship found for relationship type: {neoRelationshipAttribute.Type}");
 
-            return NodesService.TranslateNode(nodeToTranslate, targetNodeType, traversedIds, neoLookups);
+            return NodesService.TranslateNode(
+                nodeToTranslate, 
+                targetNodeType, 
+                traversedIds, 
+                neoLookups,
+                projections);
         }
     }
 }

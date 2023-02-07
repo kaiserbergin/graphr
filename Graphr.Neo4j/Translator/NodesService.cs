@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Graphr.Neo4j.Attributes;
 using Graphr.Neo4j.Graphr;
 using Neo4j.Driver;
@@ -46,7 +47,12 @@ namespace Graphr.Neo4j.Translator
             return labels;
         }
 
-        internal static object TranslateNode(INode neoNode, Type targetType, HashSet<long> traversedIds, NeoLookups neoLookups)
+        internal static object TranslateNode(
+            INode neoNode, 
+            Type targetType, 
+            HashSet<long> traversedIds, 
+            NeoLookups neoLookups, 
+            Dictionary<string, object> projections)
         {
             if (targetType.GetConstructor(Type.EmptyTypes) == null)
                 throw new Exception($"You need a paramless ctor bro. Class: {targetType.Name}");
@@ -66,22 +72,17 @@ namespace Graphr.Neo4j.Translator
 
                 foreach (var customAttribute in Attribute.GetCustomAttributes(propertyInfo))
                 {
-                    if (customAttribute is NeoLabelsAttribute labelAttribute)
+                    switch (customAttribute)
                     {
-                        neoLabelsAttribute = labelAttribute;
-                        break;
-                    }
-                    
-                    if (customAttribute is NeoPropertyAttribute propertyAttribute)
-                    {
-                        neoPropertyAttribute = propertyAttribute;
-                        break;
-                    }
-
-                    if (customAttribute is NeoRelationshipAttribute relationshipAttribute)
-                    {
-                        neoRelationshipAttribute = relationshipAttribute;
-                        break;
+                        case NeoLabelsAttribute labelsAttribute:
+                            neoLabelsAttribute = labelsAttribute;
+                            break;
+                        case NeoPropertyAttribute propertyAttribute:
+                            neoPropertyAttribute = propertyAttribute;
+                            break;
+                        case NeoRelationshipAttribute relationshipAttribute:
+                            neoRelationshipAttribute = relationshipAttribute;
+                            break;
                     }
                 }
 
@@ -110,19 +111,40 @@ namespace Graphr.Neo4j.Translator
                     if (typeof(string) != relationshipTargetType && typeof(IEnumerable).IsAssignableFrom(relationshipTargetType))
                     {
                         var relationshipTargetGenericType = relationshipTargetType.GetGenericArguments()[0];
-                        var targetClasses = RelationshipTranslationService.TranslateRelatedTargets(neoNode, neoRelationshipAttribute, relationshipTargetGenericType, traversedIds, neoLookups);
+                        var targetClasses = RelationshipTranslationService.TranslateRelatedTargets(
+                            neoNode, 
+                            neoRelationshipAttribute, 
+                            relationshipTargetGenericType, 
+                            traversedIds, 
+                            neoLookups,
+                            projections);
 
                         propertyInfo.SetValue(target, targetClasses);
                     }
                     else
                     {
-                        var targetNode = RelationshipTranslationService.TranslateRelatedNode(neoNode, neoRelationshipAttribute, relationshipTargetType, traversedIds, neoLookups);
+                        var targetNode = RelationshipTranslationService.TranslateRelatedNode(
+                            neoNode, 
+                            neoRelationshipAttribute, 
+                            relationshipTargetType, 
+                            traversedIds, 
+                            neoLookups,
+                            projections);
 
                         propertyInfo.SetValue(target, targetNode);
                     }
                 }
             }
 
+            foreach (var propertyInfo in targetProperties)
+            {
+                if (Attribute.GetCustomAttributes(propertyInfo)?.FirstOrDefault(a => a.GetType() == typeof(NeoProjectionAttribute)) is NeoProjectionAttribute neoProjectionAttribute)
+                {
+                    object? projection = ProjectionRetrievalService.GetTargetProjection(neoProjectionAttribute, projections, target);
+                    ProjectionSetterService.SetProjection(propertyInfo, target, projection, projections);
+                }
+            }
+            
             return target;
         }
     }
