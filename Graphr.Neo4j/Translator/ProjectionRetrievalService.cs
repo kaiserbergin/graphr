@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using Graphr.Neo4j.Attributes;
@@ -42,14 +43,15 @@ namespace Graphr.Neo4j.Translator
         private static bool IsNeoType(Type type) =>
             type.IsAssignableTo(typeof(INode)) || type.IsAssignableTo(typeof(IRelationship));
 
-        private static bool IsProjectedList(object obj, out Type genericType)
+        private static bool IsProjectedList(object obj, [NotNullWhen(true)] out Type? genericType)
         {
             genericType = null;
 
-            if (obj is not IList)
+            var type = obj.GetType();
+            if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(ICollection<>))
                 return false;
 
-            genericType = ((IList<object>)obj)?.FirstOrDefault(x => x is not null)?.GetType();
+            genericType = type.GenericTypeArguments[0];
 
             return true;
         }
