@@ -7,7 +7,7 @@ namespace Graphr.Neo4j.Attributes
     {
         public string? Name { get; set; }
 
-        public NeoProjectedEntity(string name = null)
+        public NeoProjectedEntity(string? name = null)
         {
             Name = name;
         }

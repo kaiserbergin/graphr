@@ -9,7 +9,7 @@ namespace Graphr.Neo4j.Translator
     {
         public static List<T> Translate<T>(List<IRecord> records) where T : class, new()
         {
-            var result = new List<object>();
+            var result = new List<object?>();
 
             var targetType = typeof(T);
 
@@ -19,7 +19,7 @@ namespace Graphr.Neo4j.Translator
                 var rootNode = NodesService.GetRootNode(record, targetType);
                 var projections = ProjectionRetrievalService.GetProjections(record);
 
-                var translatedNode = NodesService.TranslateNode(rootNode, targetType, new HashSet<long>(), neoLookups, projections);
+                var translatedNode = NodesService.TranslateNode(rootNode, targetType, new HashSet<string>(), neoLookups, projections);
 
                 result.Add(translatedNode);
             }

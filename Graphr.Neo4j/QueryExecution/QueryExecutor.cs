@@ -17,7 +17,9 @@ namespace Graphr.Neo4j.QueryExecution
         
         public Action<SessionConfigBuilder> SessionConfigBuilder { get; set; }
 
-        public QueryExecutor(IDriverProvider driverProvider, NeoDriverConfigurationSettings neoDriverConfigurationSettings)
+        public QueryExecutor(
+            IDriverProvider driverProvider, 
+            NeoDriverConfigurationSettings neoDriverConfigurationSettings)
         {
             _driverProvider = driverProvider ?? throw new ArgumentNullException(nameof(driverProvider));
             _driver = driverProvider.Driver ?? throw new ArgumentNullException(nameof(driverProvider.Driver));
@@ -33,7 +35,7 @@ namespace Graphr.Neo4j.QueryExecution
         public IQueryExecutor Clone() => new QueryExecutor(_driverProvider, _settings);
 
         private async Task<List<IRecord>> ReadAsync(
-            Func<IAsyncTransaction, Task<IResultCursor>> runAsyncCommand,
+            Func<IAsyncQueryRunner, Task<IResultCursor>> runAsyncCommand,
             CancellationToken cancellationToken = default
         )
         {
@@ -46,7 +48,7 @@ namespace Graphr.Neo4j.QueryExecution
 
             try
             {
-                await session.ReadTransactionAsync(async tx =>
+                await session.ExecuteReadAsync(async tx =>
                     {
                         var reader = await runAsyncCommand(tx);
 
@@ -68,7 +70,7 @@ namespace Graphr.Neo4j.QueryExecution
         }
 
         private async Task<List<IRecord>> WriteAsync(
-            Func<IAsyncTransaction, Task<IResultCursor>> runAsyncCommand,
+            Func<IAsyncQueryRunner, Task<IResultCursor>> runAsyncCommand,
             CancellationToken cancellationToken = default
         )
         {
@@ -81,7 +83,7 @@ namespace Graphr.Neo4j.QueryExecution
 
             try
             {
-                await session.WriteTransactionAsync(async tx =>
+                await session.ExecuteWriteAsync(async tx =>
                     {
                         var reader = await runAsyncCommand(tx);
 
@@ -107,7 +109,7 @@ namespace Graphr.Neo4j.QueryExecution
             CancellationToken cancellationToken = default
         )
         {
-            async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query);
+            async Task<IResultCursor> RunAsyncCommand(IAsyncQueryRunner tx) => await tx.RunAsync(query);
 
             return await ReadAsync(RunAsyncCommand, cancellationToken);
         }
@@ -118,7 +120,7 @@ namespace Graphr.Neo4j.QueryExecution
             CancellationToken cancellationToken = default
         )
         {
-            async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query, parameters);
+            async Task<IResultCursor> RunAsyncCommand(IAsyncQueryRunner tx) => await tx.RunAsync(query, parameters);
 
             return await ReadAsync(RunAsyncCommand, cancellationToken);
         }
@@ -129,7 +131,7 @@ namespace Graphr.Neo4j.QueryExecution
             CancellationToken cancellationToken = default
         )
         {
-            async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query, parameters);
+            async Task<IResultCursor> RunAsyncCommand(IAsyncQueryRunner tx) => await tx.RunAsync(query, parameters);
 
             return await ReadAsync(RunAsyncCommand, cancellationToken);
         }
@@ -139,7 +141,7 @@ namespace Graphr.Neo4j.QueryExecution
             CancellationToken cancellationToken = default
         )
         {
-            async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query);
+            async Task<IResultCursor> RunAsyncCommand(IAsyncQueryRunner tx) => await tx.RunAsync(query);
 
             return await ReadAsync(RunAsyncCommand, cancellationToken);
         }
@@ -149,7 +151,7 @@ namespace Graphr.Neo4j.QueryExecution
             CancellationToken cancellationToken = default
         )
         {
-            async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query);
+            async Task<IResultCursor> RunAsyncCommand(IAsyncQueryRunner tx) => await tx.RunAsync(query);
 
             return await WriteAsync(RunAsyncCommand, cancellationToken);
         }
@@ -160,7 +162,7 @@ namespace Graphr.Neo4j.QueryExecution
             CancellationToken cancellationToken = default
         )
         {
-            async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query, parameters);
+            async Task<IResultCursor> RunAsyncCommand(IAsyncQueryRunner tx) => await tx.RunAsync(query, parameters);
 
             return await WriteAsync(RunAsyncCommand, cancellationToken);
         }
@@ -171,7 +173,7 @@ namespace Graphr.Neo4j.QueryExecution
             CancellationToken cancellationToken = default
         )
         {
-            async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query, parameters);
+            async Task<IResultCursor> RunAsyncCommand(IAsyncQueryRunner tx) => await tx.RunAsync(query, parameters);
 
             return await WriteAsync(RunAsyncCommand, cancellationToken);
         }
@@ -181,7 +183,7 @@ namespace Graphr.Neo4j.QueryExecution
             CancellationToken cancellationToken = default
         )
         {
-            async Task<IResultCursor> RunAsyncCommand(IAsyncTransaction tx) => await tx.RunAsync(query);
+            async Task<IResultCursor> RunAsyncCommand(IAsyncQueryRunner tx) => await tx.RunAsync(query);
 
             return await WriteAsync(RunAsyncCommand, cancellationToken);
         }

@@ -6,7 +6,7 @@ namespace Graphr.Neo4j.Graphr
 {
     internal sealed class NeoLookups
     {
-        public readonly Dictionary<long, INode> NodesById;
+        public readonly Dictionary<string, INode> NodesById;
         public readonly ILookup<string, IRelationship> RelationshipLookup;
 
         public NeoLookups(IRecord record)
@@ -15,15 +15,15 @@ namespace Graphr.Neo4j.Graphr
             RelationshipLookup = GetDistinctRelationshipsByType(record);
         }
 
-        private Dictionary<long, INode> GetDistinctNodesById(IRecord record)
+        private Dictionary<string, INode> GetDistinctNodesById(IRecord record)
         {
-            var nodesById = new Dictionary<long, INode>();
+            var nodesById = new Dictionary<string, INode>();
 
             foreach (var (_, recordValue) in record.Values)
             {
                 if (recordValue is INode node)
                 {
-                    nodesById.TryAdd(node.Id, node);
+                    nodesById.TryAdd(node.ElementId, node);
                 }
                 else if (recordValue is List<object> objectList && objectList.FirstOrDefault() != null &&
                          objectList.FirstOrDefault() is INode)
@@ -31,8 +31,8 @@ namespace Graphr.Neo4j.Graphr
                     foreach (var obj in objectList)
                     {
                         var nodeFromObj = obj as INode;
-                        if (nodeFromObj?.Id != null)
-                            nodesById.TryAdd(nodeFromObj.Id, nodeFromObj);
+                        if (nodeFromObj?.ElementId != null)
+                            nodesById.TryAdd(nodeFromObj.ElementId, nodeFromObj);
                     }
                 }
             }
@@ -49,13 +49,13 @@ namespace Graphr.Neo4j.Graphr
 
         private List<IRelationship> GetDistinctRelationships(IRecord record)
         {
-            var relationships = new Dictionary<long, IRelationship>();
+            var relationships = new Dictionary<string, IRelationship>();
 
             foreach (var (_, recordValue) in record.Values)
             {
                 if (recordValue is IRelationship relationship)
                 {
-                    relationships.TryAdd(relationship.Id, relationship);
+                    relationships.TryAdd(relationship.ElementId, relationship);
                 }
                 else if (recordValue is List<object> objectList && objectList.FirstOrDefault() != null &&
                          objectList.FirstOrDefault() is IRelationship)
@@ -63,8 +63,8 @@ namespace Graphr.Neo4j.Graphr
                     foreach (var obj in objectList)
                     {
                         var relationshipFromObj = obj as IRelationship;
-                        if (relationshipFromObj?.Id != null)
-                            relationships.TryAdd(relationshipFromObj.Id, relationshipFromObj);
+                        if (relationshipFromObj?.ElementId != null)
+                            relationships.TryAdd(relationshipFromObj.ElementId, relationshipFromObj);
                     }
                 }
             }

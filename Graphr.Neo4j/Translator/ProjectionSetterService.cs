@@ -9,7 +9,7 @@ namespace Graphr.Neo4j.Translator
 {
     public static class ProjectionSetterService
     {
-        public static void SetProjection(PropertyInfo propertyInfo, object target, object sourceProjection, Dictionary<string, object> projections)
+        public static void SetProjection(PropertyInfo propertyInfo, object? target, object sourceProjection, Dictionary<string, object> projections)
         {
             // TODO: IF we get a generic IEnumerable and the Generic argument is a NeoProjected Entity, run the below on each item in the list.
             if (EnumerableService.IsArrayOfNeoProjectedEntities(propertyInfo.PropertyType))
@@ -35,13 +35,13 @@ namespace Graphr.Neo4j.Translator
 
         private static void PopulateAndSetArrayToTarget(
             PropertyInfo propertyInfo, 
-            object target, 
+            object? target, 
             object sourceProjection, 
             Dictionary<string, object> projections)
         {
             object? entitiesArray = CreateArrayOfNeoProjectionEntities(
                 propertyInfo,
-                propertyInfo.PropertyType.GetElementType(),
+                propertyInfo.PropertyType!.GetElementType(),
                 sourceProjection,
                 projections);
 
@@ -50,7 +50,7 @@ namespace Graphr.Neo4j.Translator
         
         private static void PopulateAndSetIEnumerableToTarget(
             PropertyInfo propertyInfo, 
-            object target, 
+            object? target, 
             object sourceProjection, 
             Dictionary<string, object> projections)
         {
@@ -65,7 +65,7 @@ namespace Graphr.Neo4j.Translator
 
         private static void PopulateAndSetProjectedEntityToTarget(
             PropertyInfo propertyInfo,
-            object target,
+            object? target,
             object sourceProjection,
             Dictionary<string, object> projections)
         {
@@ -84,7 +84,7 @@ namespace Graphr.Neo4j.Translator
                 .Any(a => a.GetType() == typeof(NeoProjectedEntity)) == true;
 
         private static void PopulateProjectedEntity(
-            object target,
+            object? target,
             Dictionary<string, object> source,
             Dictionary<string, object> projections)
         {

@@ -15,7 +15,7 @@ namespace Graphr.Neo4j.Translator
             INode sourceNode,
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type relationshipTargetType,
-            HashSet<long> traversedIds,
+            HashSet<string> traversedIds,
             NeoLookups neoLookups,
             Dictionary<string, object> projections)
         {
@@ -43,7 +43,7 @@ namespace Graphr.Neo4j.Translator
             INode sourceNode,
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type relationshipEntityType,
-            HashSet<long> traversedIds,
+            HashSet<string> traversedIds,
             NeoLookups neoLookups,
             Dictionary<string, object> projections)
         {
@@ -100,7 +100,7 @@ namespace Graphr.Neo4j.Translator
             INode sourceNode,
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type targetNodeType,
-            HashSet<long> traversedIds,
+            HashSet<string> traversedIds,
             NeoLookups neoLookups,
             Dictionary<string, object> projections)
         {
@@ -120,7 +120,7 @@ namespace Graphr.Neo4j.Translator
             INode sourceNode,
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type targetNodeType,
-            HashSet<long> traversedIds,
+            HashSet<string> traversedIds,
             NeoLookups neoLookups,
             Dictionary<string, object> projections)
         {
@@ -162,12 +162,12 @@ namespace Graphr.Neo4j.Translator
 
             var (relationshipSourceId, relationshipTargetId) = neoRelationshipAttribute.Direction switch
             {
-                RelationshipDirection.Incoming => (relationship.EndNodeId, relationship.StartNodeId),
-                RelationshipDirection.Outgoing => (relationship.StartNodeId, relationship.EndNodeId),
+                RelationshipDirection.Incoming => (relationship.EndNodeElementId, relationship.StartNodeElementId),
+                RelationshipDirection.Outgoing => (relationship.StartNodeElementId, relationship.EndNodeElementId),
                 _ => throw new Exception("Invalid Direction")
             };
 
-            if (sourceNode.Id != relationshipSourceId) return false;
+            if (sourceNode.ElementId != relationshipSourceId) return false;
 
             if (neoLookups.NodesById.TryGetValue(relationshipTargetId, out var candidateTargetNode))
             {
@@ -181,11 +181,11 @@ namespace Graphr.Neo4j.Translator
             return false;
         }
 
-        internal static object TranslateRelatedNode(
+        internal static object? TranslateRelatedNode(
             INode sourceNode,
             NeoRelationshipAttribute neoRelationshipAttribute,
             Type targetNodeType,
-            HashSet<long> traversedIds,
+            HashSet<string> traversedIds,
             NeoLookups neoLookups,
             Dictionary<string, object> projections)
         {

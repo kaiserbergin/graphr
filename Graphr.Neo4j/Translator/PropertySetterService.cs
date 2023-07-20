@@ -10,7 +10,7 @@ namespace Graphr.Neo4j.Translator
 {
     internal static class PropertySetterService
     {
-        internal static void SetPropertyValue(PropertyInfo targetPropertyInfo, object targetClass, object source)
+        internal static void SetPropertyValue(PropertyInfo targetPropertyInfo, object? targetClass, object source)
         {
             var convertedNeoProp = ConvertToClrType(targetPropertyInfo.PropertyType, source);
             targetPropertyInfo.SetValue(targetClass, convertedNeoProp);

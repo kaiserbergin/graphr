@@ -56,7 +56,7 @@ namespace Graphr.Neo4j.Translator
             return true;
         }
 
-        public static object? GetTargetProjection(NeoProjectionAttribute projectionAttribute, Dictionary<string, object> projections, object target = null)
+        public static object? GetTargetProjection(NeoProjectionAttribute projectionAttribute, Dictionary<string, object> projections, object? target = null)
         {
             if (projectionAttribute is { ProjectionName: not null }
                 && projections.TryGetValue(projectionAttribute.ProjectionName, out var projectionObject))

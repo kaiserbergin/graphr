@@ -12,7 +12,8 @@ namespace Graphr.Neo4j.Translator
                 throw new Exception("Error converting to clr type. Specified class property does not match returned object from database.");
                 
             Type[] genericTypeArguments = type.GenericTypeArguments;
-            IDictionary instance = (IDictionary) Activator.CreateInstance(typeof (Dictionary<,>).MakeGenericType(genericTypeArguments));
+            IDictionary instance = Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(genericTypeArguments)) as IDictionary
+                                   ?? throw new Exception($"Could not create a dictionary from the specified type: {genericTypeArguments}.");
                 
             IDictionaryEnumerator enumerator = dict.GetEnumerator();
             while (enumerator.MoveNext())

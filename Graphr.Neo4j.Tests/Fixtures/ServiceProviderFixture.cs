@@ -10,15 +10,19 @@ using Graphr.Neo4j.Configuration;
 using Graphr.Neo4j.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Testcontainers.Neo4j;
 using Xunit;
 
 namespace Graphr.Tests.Fixtures
 {
     public sealed class ServiceProviderFixture : IAsyncLifetime
     {
-        internal readonly Neo4jTestcontainer _neo4jContainer =
-            new TestcontainersBuilder<Neo4jTestcontainer>()
-                .WithDatabase(new Neo4jTestcontainerConfiguration { Password = "connect" })
+        internal readonly Neo4jContainer _neo4jContainer =
+            new Neo4jBuilder()
+                .WithImage("neo4j:enterprise")
+                .WithEnvironment("NEO4JLABS_PLUGINS", "[\"apoc\"]")
+                .WithEnvironment("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
+                .WithEnvironment("NEO4J_AUTH", $"neo4j/connect")
                 .Build();
 
         internal IServiceProvider ServiceProvider;
@@ -39,7 +43,7 @@ namespace Graphr.Tests.Fixtures
                     {
                         new KeyValuePair<string, string>(
                             $"{nameof(NeoDriverConfigurationSettings)}:{nameof(NeoDriverConfigurationSettings.Url)}",
-                            _neo4jContainer.ConnectionString)
+                            _neo4jContainer.GetConnectionString())
                     });
 
             serviceCollection

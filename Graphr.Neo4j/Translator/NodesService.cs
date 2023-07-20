@@ -47,18 +47,18 @@ namespace Graphr.Neo4j.Translator
             return labels;
         }
 
-        internal static object TranslateNode(
+        internal static object? TranslateNode(
             INode neoNode, 
             Type targetType, 
-            HashSet<long> traversedIds, 
+            HashSet<string> traversedIds, 
             NeoLookups neoLookups, 
             Dictionary<string, object> projections)
         {
             if (targetType.GetConstructor(Type.EmptyTypes) == null)
                 throw new Exception($"You need a paramless ctor bro. Class: {targetType.Name}");
 
-            traversedIds = new HashSet<long>(traversedIds);
-            var isFirstTraversal = traversedIds.Add(neoNode.Id);
+            traversedIds = new HashSet<string>(traversedIds);
+            var isFirstTraversal = traversedIds.Add(neoNode.ElementId);
 
             var target = Activator.CreateInstance(targetType) ?? throw new ArgumentException($"Could not create an instance of {targetType}");
 

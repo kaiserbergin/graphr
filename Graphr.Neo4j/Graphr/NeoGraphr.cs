@@ -19,10 +19,8 @@ namespace Graphr.Neo4j.Graphr
 
         public INeoGraphr WithSessionConfig(Action<SessionConfigBuilder> builder)
         {
-            var queryExecutor = new QueryExecutorWithConfig(
-                _queryExecutor.Clone(),
-                builder
-            );
+            var queryExecutor = _queryExecutor.Clone();
+            queryExecutor.SessionConfigBuilder = builder;
 
             return new NeoGraphr(queryExecutor);
         }
