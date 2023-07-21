@@ -8,6 +8,7 @@ using Graphr.Neo4j.Configuration;
 using Graphr.Neo4j.Driver;
 using Graphr.Neo4j.Graphr;
 using Graphr.Neo4j.QueryExecution;
+using Graphr.Neo4j.Translator;
 using Graphr.Tests.Fixtures;
 using Graphr.Tests.Graphr.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +25,7 @@ namespace Graphr.Tests.Graphr
     {
         private readonly ServiceProviderFixture _serviceProviderFixture;
         private readonly INeoGraphr _neoGraphr;
-        
+
         private readonly string _nonParameterizedQuery;
         private readonly string _parameterizedQuery;
         private readonly string _oneToManyQuery;
@@ -46,11 +47,11 @@ namespace Graphr.Tests.Graphr
         public GraphrTests(ServiceProviderFixture serviceProviderFixture)
         {
             _serviceProviderFixture = serviceProviderFixture;
-            
+
             _neoGraphr = serviceProviderFixture
                 .ServiceProvider
                 .GetRequiredService<INeoGraphr>();
-            
+
             _nonParameterizedQuery = File.ReadAllText(@"Queries/one-to-one.cypher");
             _parameterizedQuery = File.ReadAllText(@"Queries/parameterized-query.cypher");
             _oneToManyQuery = File.ReadAllText(@"Queries/one-to-many.cypher");
@@ -85,6 +86,29 @@ namespace Graphr.Tests.Graphr
 
             // Act
             var actorsWithSingleMovie = await _neoGraphr.ReadAsAsync<ActorWithSingleMovie>(_nonParameterizedQuery);
+
+            // Assert
+            Assert.Equal(expectedActorCount, actorsWithSingleMovie.Count);
+            Assert.Equal(expectedMovieCount, actorsWithSingleMovie.Select(x => x.Movie).Count());
+            Assert.All(
+                actorsWithSingleMovie,
+                actor => Assert.True(
+                    actor.Name != null
+                    && actor.Movie?.Title != null
+                    && actor.Movie.Description != null));
+        }
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async void ReadAsync_AsActorWithSingleMovie_ReturnsActorsWithSingleMovie()
+        {
+            // Arrange
+            const int expectedActorCount = 5;
+            const int expectedMovieCount = 5;
+
+            // Act
+            var records = await _neoGraphr.ReadAsync(_nonParameterizedQuery);
+            var actorsWithSingleMovie = records.As<ActorWithSingleMovie>();
 
             // Assert
             Assert.Equal(expectedActorCount, actorsWithSingleMovie.Count);
@@ -182,7 +206,7 @@ namespace Graphr.Tests.Graphr
             Assert.Single(actorWithMovies);
             Assert.Equal(expectedMovieCount, actorWithMovies.SelectMany(actor => actor.Movie).Count());
         }
-        
+
         [Fact]
         [Trait("Category", "Integration")]
         public async void ReadAsAsync_NodeWithRelationshipEnitityList_ReturnsActorWithMultipleRelationshipsLinkedToSingularMovies()
@@ -208,15 +232,15 @@ namespace Graphr.Tests.Graphr
             // Arrange
             await _neoGraphr.WriteAsync(_deleteNodeForTypeTestingQuery);
             await _neoGraphr.WriteAsync(_createNodeForTypeTestingQuery);
-            
+
             var query = new Query(_retrieveNodeForTypeTestingQuery);
 
             // Actssert
             var idonttrustme = await _neoGraphr.ReadAsAsync<ValueTypesNode>(query);
-            
+
             await _neoGraphr.WriteAsync(_deleteNodeForTypeTestingQuery);
         }
-        
+
 
         [Fact]
         [Trait("Category", "Integration")]
@@ -250,7 +274,7 @@ namespace Graphr.Tests.Graphr
         {
             // Arrange
             var parameters = new { title = "Test Movie" };
-            
+
             // Act
             var movies = await _neoGraphr.WriteAsAsync<Movie>(_createMovieParameterizedQuery, parameters);
 
@@ -258,14 +282,14 @@ namespace Graphr.Tests.Graphr
             Assert.Single(movies);
             Assert.Equal("Test Movie", movies.Single().Title);
         }
-        
+
         [Fact]
         [Trait("Category", "Integration")]
         public async void WriteAsAsync_CreateMovieQueryWithDictionaryParameters_ReturnsSingleMovie()
         {
             // Arrange
             var parameters = new Dictionary<string, object> { { "title", "Test Movie" } };
-            
+
             // Act
             var movies = await _neoGraphr.WriteAsAsync<Movie>(_createMovieParameterizedQuery, parameters);
 
@@ -273,7 +297,7 @@ namespace Graphr.Tests.Graphr
             Assert.Single(movies);
             Assert.Equal("Test Movie", movies.Single().Title);
         }
-        
+
         [Fact]
         [Trait("Category", "Integration")]
         public async void WriteAsAsync_CreateMovieQueryWithQueryClass_ReturnsSingleMovie()
@@ -281,7 +305,7 @@ namespace Graphr.Tests.Graphr
             // Arrange
             var parameters = new { title = "Test Movie" };
             var query = new Query(_createMovieParameterizedQuery, parameters);
-            
+
             // Act
             var movies = await _neoGraphr.WriteAsAsync<Movie>(query);
 
@@ -289,7 +313,7 @@ namespace Graphr.Tests.Graphr
             Assert.Single(movies);
             Assert.Equal("Test Movie", movies.Single().Title);
         }
-        
+
         [Fact]
         [Trait("Category", "Integration")]
         public async void WriteAsync_CreateMovieQueryAsString_ReturnsSingleMovie()
@@ -309,23 +333,7 @@ namespace Graphr.Tests.Graphr
         {
             // Arrange
             var parameters = new { title = "Test Movie" };
-            
-            // Act
-            await _neoGraphr.WriteAsync(_createMovieParameterizedQuery, parameters);
-            var movies = await _neoGraphr.ReadAsAsync<Movie>(_getCreatedMovieQuery);
-            
-            // Assert
-            Assert.Single(movies);
-            Assert.Equal("Test Movie", movies.Single().Title);
-        }
-        
-        [Fact]
-        [Trait("Category", "Integration")]
-        public async void WriteAsync_CreateMovieQueryWithDictionaryParameters_ReturnsSingleMovie()
-        {
-            // Arrange
-            var parameters = new Dictionary<string, object> { { "title", "Test Movie" } };
-            
+
             // Act
             await _neoGraphr.WriteAsync(_createMovieParameterizedQuery, parameters);
             var movies = await _neoGraphr.ReadAsAsync<Movie>(_getCreatedMovieQuery);
@@ -334,7 +342,23 @@ namespace Graphr.Tests.Graphr
             Assert.Single(movies);
             Assert.Equal("Test Movie", movies.Single().Title);
         }
-        
+
+        [Fact]
+        [Trait("Category", "Integration")]
+        public async void WriteAsync_CreateMovieQueryWithDictionaryParameters_ReturnsSingleMovie()
+        {
+            // Arrange
+            var parameters = new Dictionary<string, object> { { "title", "Test Movie" } };
+
+            // Act
+            await _neoGraphr.WriteAsync(_createMovieParameterizedQuery, parameters);
+            var movies = await _neoGraphr.ReadAsAsync<Movie>(_getCreatedMovieQuery);
+
+            // Assert
+            Assert.Single(movies);
+            Assert.Equal("Test Movie", movies.Single().Title);
+        }
+
         [Fact]
         [Trait("Category", "Integration")]
         public async void WriteAsync_CreateMovieQueryWithQueryClass_ReturnsSingleMovie()
@@ -342,7 +366,7 @@ namespace Graphr.Tests.Graphr
             // Arrange
             var parameters = new { title = "Test Movie" };
             var query = new Query(_createMovieParameterizedQuery, parameters);
-            
+
             // Act
             await _neoGraphr.WriteAsync(query);
             var movies = await _neoGraphr.ReadAsAsync<Movie>(_getCreatedMovieQuery);
@@ -369,16 +393,16 @@ namespace Graphr.Tests.Graphr
 
             var parameters = new { title = TEST_MOVIE_TITLE };
             var query = new Query(_createMovieParameterizedQuery, parameters);
-            
+
             // Act
             await neoGraphr.WriteAsync(query);
             var movies = await neoGraphr.ReadAsAsync<Movie>(_getCreatedMovieQuery);
 
             // Assert
             Assert.Single(movies);
-            Assert.Equal(TEST_MOVIE_TITLE, movies.Single().Title); 
+            Assert.Equal(TEST_MOVIE_TITLE, movies.Single().Title);
         }
-        
+
         [Fact]
         [Trait("Category", "Integration")]
         public async void ReadAndWriteAsync_WithSessionConfigBuilder_ExecutesProperly()
@@ -388,7 +412,7 @@ namespace Graphr.Tests.Graphr
             var query = new Query(_createMovieParameterizedQuery, parameters);
 
             var configurationAction = new Action<SessionConfigBuilder>(config => config.WithDatabase(DATABASE_NAME));
-            
+
             // Act
             await _neoGraphr
                 .WithSessionConfig(configurationAction)
@@ -399,16 +423,16 @@ namespace Graphr.Tests.Graphr
 
             // Assert
             Assert.Single(movies);
-            Assert.Equal(TEST_MOVIE_TITLE, movies.Single().Title); 
+            Assert.Equal(TEST_MOVIE_TITLE, movies.Single().Title);
         }
-        
+
         [Fact]
         [Trait("Category", "Integration")]
         public async void ReadAsync_WithImproperSessionConfigBuilder_ThrowsException()
         {
             // Arrange
             var configurationAction = new Action<SessionConfigBuilder>(config => config.WithDatabase("break"));
-            
+
             // Act
             Func<Task<List<IRecord>>> act = async () => await _neoGraphr
                 .WithSessionConfig(configurationAction)
@@ -424,7 +448,7 @@ namespace Graphr.Tests.Graphr
         {
             // Act
             var actorWithMovieProjection = await _neoGraphr.ReadAsAsync<ActorWithMoviesAndProjection>(_actorToMovieWithProjectionsQuery);
-            
+
             // Assert
             var keanu = actorWithMovieProjection.First();
 
@@ -433,13 +457,13 @@ namespace Graphr.Tests.Graphr
             keanu.Feels.Feels.Should().Be("so many");
             keanu.Labels.Single().Should().Be("Person");
             keanu.Surprise.Should().Be(1);
-            
+
             keanu.Dictionary.Count().Should().Be(2);
             keanu.Dictionary["one"].Should().Be("two");
-            
+
             keanu.ObjectionableDictionary.Count.Should().Be(3);
             keanu.ObjectionableDictionary["two"].Should().Be(2);
-            
+
             keanu.Movie.Count().Should().Be(7);
 
             var movie = keanu.Movie.First(m => m.Title == "Something's Gotta Give");
