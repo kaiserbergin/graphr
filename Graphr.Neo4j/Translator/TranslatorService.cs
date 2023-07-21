@@ -7,7 +7,9 @@ namespace Graphr.Neo4j.Translator
 {
     public static class TranslatorService
     {
-        public static List<T> Translate<T>(List<IRecord> records) where T : class, new()
+        public static List<T> As<T>(this IEnumerable<IRecord> records) where T : class, new() => Translate<T>(records);
+        
+        public static List<T> Translate<T>(IEnumerable<IRecord> records) where T : class, new()
         {
             var result = new List<object?>();
 
