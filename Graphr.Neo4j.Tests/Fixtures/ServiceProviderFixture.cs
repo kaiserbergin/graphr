@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Configurations;
-using DotNet.Testcontainers.Containers;
 using Graphr.Neo4j.Configuration;
 using Graphr.Neo4j.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -19,7 +15,7 @@ namespace Graphr.Tests.Fixtures
     {
         internal readonly Neo4jContainer _neo4jContainer =
             new Neo4jBuilder()
-                .WithImage("neo4j:4.3.2")
+                .WithImage("neo4j:5-enterprise")
                 .WithEnvironment("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
                 .Build();
 
