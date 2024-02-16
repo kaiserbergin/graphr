@@ -18,7 +18,6 @@ using Xunit;
 
 namespace Graphr.Tests.Graphr
 {
-    [UsesVerify]
     [Collection("ServiceProvider")]
     public class GraphrTests : IAsyncLifetime
     {
