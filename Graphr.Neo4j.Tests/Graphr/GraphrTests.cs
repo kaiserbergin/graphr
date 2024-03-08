@@ -13,12 +13,10 @@ using Graphr.Tests.Graphr.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Neo4j.Driver;
-using VerifyXunit;
 using Xunit;
 
 namespace Graphr.Tests.Graphr
 {
-    [UsesVerify]
     [Collection("ServiceProvider")]
     public class GraphrTests : IAsyncLifetime
     {
