@@ -99,8 +99,9 @@ namespace Graphr.Neo4j.Translator
                 if (propertyInfo.GetCustomAttributes()?.First(a => a.GetType() == typeof(NeoProjectionAttribute)) is NeoProjectionAttribute projectionAttribute)
                 {
                     object? targetProjection = ProjectionRetrievalService.GetTargetProjection(projectionAttribute, source);
-                    ProjectionSetterService.SetProjection(propertyInfo, target, targetProjection, source);
-                    continue;
+
+                    if (targetProjection is not null)
+                        SetProjection(propertyInfo, target, targetProjection, source);
                 }
             }
         }

@@ -138,10 +138,12 @@ namespace Graphr.Neo4j.Translator
 
             foreach (var propertyInfo in targetProperties)
             {
-                if (Attribute.GetCustomAttributes(propertyInfo)?.FirstOrDefault(a => a.GetType() == typeof(NeoProjectionAttribute)) is NeoProjectionAttribute neoProjectionAttribute)
+                if (Attribute.GetCustomAttributes(propertyInfo).FirstOrDefault(a => a.GetType() == typeof(NeoProjectionAttribute)) is NeoProjectionAttribute neoProjectionAttribute)
                 {
                     object? projection = ProjectionRetrievalService.GetTargetProjection(neoProjectionAttribute, projections, target);
-                    ProjectionSetterService.SetProjection(propertyInfo, target, projection, projections);
+                    
+                    if (projection is not null)
+                        ProjectionSetterService.SetProjection(propertyInfo, target, projection, projections);
                 }
             }
             

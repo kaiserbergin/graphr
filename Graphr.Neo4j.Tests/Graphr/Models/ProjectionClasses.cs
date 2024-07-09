@@ -18,7 +18,13 @@ namespace Graphr.Tests.Graphr.Models
         public IEnumerable<ProjectedPerson> Actors { get; set; } 
         
         [NeoProjection("directors")]
-        public ProjectedPerson[] Directors { get; set; } 
+        public ProjectedPerson[] Directors { get; set; }
+        
+        [NeoProjection("missing")]
+        public IEnumerable<ProjectedPerson> MissingPersons { get; set; }
+        
+        [NeoProjection("null")]
+        public IEnumerable<ProjectedPerson> NullPersons { get; set; }
         
         [NeoProjection("nested")]
         public ProjectedNested Nested { get; set; }

@@ -85,7 +85,7 @@ namespace Graphr.Neo4j.Translator
                 if (matchOnProperty is null)
                     throw new Exception($"No MatchOn property matches {projectionAttribute.MatchOn} for {projectionAttribute.ProjectionName}");
 
-                string matchOnValue = matchOnProperty.GetValue(target).ToString();
+                var matchOnValue = matchOnProperty.GetValue(target)?.ToString() ?? string.Empty;
 
                 return dictList?
                     .FirstOrDefault(dict =>
@@ -93,7 +93,7 @@ namespace Graphr.Neo4j.Translator
                         && matchOnValue == pValue.ToString());
             }
 
-            throw new Exception($"Ya done tried to get a projection that doesn't exist son! Couldn't find {projectionAttribute.ProjectionName} in returned projections.");
+            return null;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿MATCH (p:Person {name: 'Keanu Reeves'})-[actedIn:ACTED_IN]->(m:Movie)
 OPTIONAL MATCH (m)<-[:ACTED_IN]-(p2:Person)
 OPTIONAL MATCH (m)<-[:DIRECTED]-(d:Person)
+OPTIONAL MATCH (m)<-[:ACTED_IN]-(mia:Person { name: "test" })
 WITH 
   p AS anchor, 
   actedIn, 
@@ -8,7 +9,8 @@ WITH
   { 
     gKey: m.title,  
     actors: collect(DISTINCT p2{.*}), 
-    directors: collect(DISTINCT d{.*}), 
+    directors: collect(DISTINCT d{.*}),
+    missing: collect(DISTINCT mia{.*}),
     nested: { example: "data" }
   } AS staff
 RETURN 
