@@ -427,8 +427,8 @@ namespace Graphr.Tests.Graphr
             var keanu = actorWithMovieProjection.First();
 
             // This is a dumb test. Neo4j changed behavior on returned results. Will raise bug.
-            // keanu.Name.Should().Be("Keanu Reeves");
-            keanu.Name.Should().BeNull();
+            keanu.Name.Should().Be("Keanu Reeves");
+            // keanu.Name.Should().BeNull();
             keanu.Born.Should().Be(1964);
             keanu.Feels.Feels.Should().Be("so many");
             keanu.Labels.Single().Should().Be("Person");
